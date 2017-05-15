@@ -1,0 +1,494 @@
+﻿@{
+    Layout = "~/Views/Shared/_MapLayout.cshtml";
+}
+@using GrassPlantInfo.GIS;
+@using GrassPlantInfo.GIS.Common;
+@using GrassPlantInfo.Service.GIS;
+@using GrassPlantInfo.Contract.DTO.GIS;
+@model GrassPlantInfo.Service.GIS.SandificationService
+
+<script src="~/Scripts/highcharts/highcharts.js"></script>
+<script src="~/Scripts/highcharts/modules/exporting.js"></script>
+
+<style type="text/css">
+    .panel-button-left {
+        /*background: url(~/map/images/layout_button_left.gif) no-repeat;*/
+        background: url(../map/images/layout_button_left.gif) no-repeat;
+        width: 16px;
+        height: 16px;
+        position: absolute;
+        z-index: 2;
+        top: 36px;
+        right: 10px;
+        margin-top: 4px;
+    }
+    .panel-button-right {
+        background: url(../map/images/layout_button_right.gif) no-repeat;
+        width: 16px;
+        height: 16px;
+        display: block;
+        position: absolute;
+        z-index: 2;
+        top: 36px;
+        right: 10px;
+        margin-top: 4px;
+    }
+    .panel-show {
+        display:block;
+    }
+    .panel-hide {
+        display:none;
+    }
+</style>
+<!--loading base map-->
+<script type="text/javascript">
+    var App = {
+        MapBase: null
+    };
+    require({ async: true }, ["../map/js/MapBase.js"],
+        function (mapbase) {
+            App.MapBase = mapbase.CreateNew();
+            App.MapBase.LoadBaseMap("@Model.BaseMap.BaseMap.ServiceAuth");
+    });
+</script>
+
+<!--sandification slider-->
+<script type="text/javascript">
+    require(["dijit/layout/TabContainer", "dijit/layout/ContentPane", "dojo/parser", "dijit/form/HorizontalSlider", "esri/geometry/Extent", "esri/layers/ArcGISTiledMapServiceLayer",
+        "dojo/query", "dojo/dom-class", "dijit/form/HorizontalRuleLabels", "dijit/form/HorizontalRule", "dojo/domReady!"],
+        function (TabContainer, ContentPane, parser, HorizontalSlider, Extent, ArcGISTiledMapServiceLayer, query, domClass) {
+            parser.parse();
+            var tc = new TabContainer({
+                style: "height: 100%; width: 100%;"
+            }, "tc");
+
+            var cp1 = new ContentPane({
+                title: "沙化专题"
+            }, "Sandification");
+
+            tc.addChild(cp1);
+
+            var cp2 = new ContentPane({
+                title: "沙化变化"
+            }, "SandInversion");
+            tc.addChild(cp2);
+
+            var cp3 = new ContentPane({
+                title: "沙化统计分布"
+            }, "SandChartDistribution");
+            tc.addChild(cp3);
+
+            tc.startup();
+            var slider = new HorizontalSlider({
+                name: "slider",
+                value: 0,
+                minimum: parseInt("@Model.MiniYear.ToString()"),
+                maximum: parseInt("@Model.MaxiYear.ToString()"),
+                intermediateChanges: true,
+                discreteValues: parseInt("@Model.SandificationList.Count.ToString()"),
+
+                onChange: function (value) {
+                    App.MapBase.Map.removeAllLayers();
+                    var sList = {};
+                    @foreach(var s in @Model.SandificationList)
+                    {
+                    <text>
+                    sList["@s.Year.ToString()"] = "@s.SandClassificationMap.ServiceAuth";
+                    </text>
+                    }
+                    App.MapBase.Map.addLayer(new ArcGISTiledMapServiceLayer(sList[value]));
+
+                    @foreach(var li in @Model.BaseMap.InitLayers)
+                    {
+                    <text>
+                    App.MapBase.Map.addLayer(new ArcGISTiledMapServiceLayer("@li.ServiceAuth"));
+                    </text>
+                    }
+                }
+            }, "slider").startup();
+
+            query(".SandTransition").forEach(function (node) {
+                node.onclick = function () {
+                    if (node.checked) {
+                        App.MapBase.Map.removeAllLayers();
+                        var pLayer = new ArcGISTiledMapServiceLayer(node.value, { id: node.id});
+                        App.MapBase.Map.addLayer(pLayer);
+                    }
+                    else {
+                        try {
+                            var pLayer = App.MapBase.Map.getLayer(node.id);
+                            App.MapBase.Map.removeLayer(pLayer);
+                        } catch (e) {
+
+                        }
+                    }
+                };
+            });
+
+       require({ async: true }, [ "dojo/query", "esri/layers/ArcGISTiledMapServiceLayer"],
+           function ( query, ArcGISTiledMapServiceLayer) {
+               query(".SandChartDistribution").forEach(function (node) {
+                   node.onclick = function () {
+                       if (node.checked) {
+                           App.MapBase.Map.removeAllLayers();
+                           var pLayer = new ArcGISTiledMapServiceLayer(node.value, { id: node.id });
+                           App.MapBase.Map.addLayer(pLayer);
+                       }
+                       else {
+                           try {
+                               var pLayer = App.MapBase.Map.getLayer(node.id);
+                               App.MapBase.Map.removeLayer(pLayer);
+                           } catch (e) {
+
+                           }
+                       }
+                   };
+               });
+           });
+
+
+            query("#panel-button").forEach(function (node) {
+                node.onclick = function () {
+                    if (domClass.contains(node, "panel-button-left"))
+                    {
+                        domClass.replace(node, "panel-button-right", "panel-button-left");
+                        domClass.replace("funcPanel", "panel-show", "panel-hide");
+                    }
+                    else if (domClass.contains(node, "panel-button-right"))
+                    {
+                        domClass.replace(node, "panel-button-left", "panel-button-right");
+                        domClass.replace("funcPanel", "panel-hide", "panel-show");
+                    }
+                };
+            });
+        });
+</script>
+
+<!--chart display-->
+<script type="text/javascript">
+    $(function () {
+        var chart;
+        $(document).ready(function () {
+            $('#container-pie').highcharts({
+                chart: {
+                    plotBackgroundColor: null,
+                    plotBorderWidth: null,
+                    plotShadow: false
+                },
+                title: {
+                    text: '2015年草原分类'
+                },
+                tooltip: {
+                    pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>'
+                },
+                plotOptions: {
+                    pie: {
+                        allowPointSelect: true,
+                        cursor: 'pointer',
+                        dataLabels: {
+                            enabled: true,
+                            color: '#000000',
+                            connectorColor: '#000000',
+                            format: '<b>{point.name}</b>: {point.percentage:.1f} %'
+                        },
+                        showInLegend: true
+                    }
+                },
+                series: [{
+                    type: 'pie',
+                    name: '土地类型',
+                    data: [
+                        ['轻度沙化', 1026.69],
+                        ['中度沙化', 3616.67],
+                        ['重度沙化', 1417.09],
+                        {
+                            name: '未沙化',
+                            y: 20247.21,
+                                sliced: true,
+                                selected: true
+                        },
+                        ['硒砂瓜地', 539.45],
+                        ['林地', 87.48],
+                        ['撂荒耕地', 198.63],
+                        ['耕地', 6186.05],
+                        ['水体', 350.66],
+                        ['建设用地', 1342.47]
+                    ]
+                }]
+            });
+        });
+    });
+
+    $(function () {
+        $('#container-column').highcharts({
+            chart: {
+                type: 'column'
+            },
+            title: {
+                text: '草原沙化'
+            },
+            xAxis: {
+                categories: ['2000年', '2005年', '2010年', '2015年']
+            },
+            yAxis: {
+                min: 0,
+                title: {
+                    text: '面积'
+                },
+                stackLabels: {
+                    enabled: true,
+                    style: {
+                        fontWeight: 'bold',
+                        color: (Highcharts.theme && Highcharts.theme.textColor) || 'gray'
+                    }
+                }
+            },
+            legend: {
+                align: 'right',
+                x: -70,
+                verticalAlign: 'top',
+                y: 20,
+                floating: true,
+                backgroundColor: (Highcharts.theme && Highcharts.theme.legendBackgroundColorSolid) || 'white',
+                borderColor: '#CCC',
+                borderWidth: 1,
+                shadow: false
+            },
+            tooltip: {
+                formatter: function () {
+                    return '<b>' + this.x + '</b><br/>' +
+                        this.series.name + ': ' + this.y + '<br/>' +
+                        'Total: ' + this.point.stackTotal;
+                }
+            },
+            plotOptions: {
+                column: {
+                    stacking: 'normal',
+                    dataLabels: {
+                        enabled: true,
+                        color: (Highcharts.theme && Highcharts.theme.dataLabelsColor) || 'white',
+                        style: {
+                            textShadow: '0 0 3px black, 0 0 3px black'
+                        }
+                    }
+                }
+            },
+            series: [{
+                name: '轻度沙化',
+                data: [1041.6, 1286.78, 526.51, 1026.69]
+            }, {
+                name: '中度沙化',
+                data: [3446.55, 3312.11, 3980.08, 3616.67]
+            }, {
+                name: '重度沙化',
+                data: [2898.38, 2049.99, 2146.35, 1417.09]
+            }]
+        });
+    });
+
+
+    $(function () {
+        $('#container-column-SandInversion').highcharts({
+            chart: {
+                type: 'column'
+            },
+            title: {
+                text: '草原沙化变化情况分析'
+            },
+            xAxis: {
+                categories: ['2000~2005年', '2005~2010年', '2010~2015年', '2000~2015年']
+            },
+            yAxis: {
+                min: 0,
+                title: {
+                    text: '面积'
+                },
+                stackLabels: {
+                    enabled: true,
+                    style: {
+                        fontWeight: 'bold',
+                        color: (Highcharts.theme && Highcharts.theme.textColor) || 'gray'
+                    }
+                }
+            },
+            legend: {
+                align: 'right',
+                x: -70,
+                verticalAlign: 'top',
+                y: 20,
+                floating: true,
+                backgroundColor: (Highcharts.theme && Highcharts.theme.legendBackgroundColorSolid) || 'white',
+                borderColor: '#CCC',
+                borderWidth: 1,
+                shadow: false
+            },
+            tooltip: {
+                formatter: function () {
+                    return '<b>' + this.x + '</b><br/>' +
+                        this.series.name + ': ' + this.y + '<br/>' +
+                        'Total: ' + this.point.stackTotal;
+                }
+            },
+            plotOptions: {
+                column: {
+                    stacking: 'normal',
+                    dataLabels: {
+                        enabled: true,
+                        color: (Highcharts.theme && Highcharts.theme.dataLabelsColor) || 'white',
+                        style: {
+                            textShadow: '0 0 3px black, 0 0 3px black'
+                        }
+                    }
+                }
+            },
+            series: [{
+                name: '严重发展',
+                data: [907.84, 1587.63, 1087.32, 1027.44]
+            }, {
+                name: '发展',
+                data: [1171.68, 1059.46, 746.1, 1088.27]
+            }, {
+                name: '逆转',
+                data: [1364.52, 1172.66, 1273.05, 1494.47]
+            }, {
+                name: '明显逆转',
+                data: [1846.94, 1088.53, 1519.42, 1866.01]
+            }, {
+                name: '草地转为非草地',
+                data: [1986.65, 2060.5, 3651.25, 4874.94]
+            }, {
+                name: '非草地转为草地',
+                data: [1610.5, 1403.68, 1177.04, 1368.43]
+            },{
+                name: '稳定',
+                data: [22590.52, 22523.42, 20500.44, 19461.23]
+            }]
+        });
+    });
+
+</script>
+
+@{
+    var noSandClassList = new string[] { "硒砂瓜地", "林地", "撂荒耕地", "耕地", "水体", "建设用地" };
+    var sandClassList = new string[] { "轻度沙化", "中度沙化", "重度沙化", "未沙化",};
+    var sandChangeClassList = new string[] { "严重发展", "发展", "稳定", "逆转", "明显逆转", "草地转为非草地", "非草地转为草地", "非草地" };
+    var sandChangeIntervalList = new string[] { "2000-2005", "2005-2010", "2010-2015", "2000-2015" };
+}
+<!--sandification-->
+<div id="Sandification">
+    <div style="float:left;">草原沙化:</div>
+    <div id="slider">
+        <div data-dojo-type="dijit/form/HorizontalRule" container="bottomDecoration" count=@Model.SandificationList.Count
+                style="height:5px;"></div>
+        <ol data-dojo-type="dijit/form/HorizontalRuleLabels" container="bottomDecoration"
+            style="height:1em;font-size:75%;color:gray;">
+            @foreach (var s in @Model.SandificationList)
+            {
+                <li>@s.Year.ToString()</li>
+            }
+        </ol>
+    </div>
+    <div id="info" style="text-align: left; margin-top: 10px; float: left;"><img style=" width:150px; height:300px;" src="~/map/images/sandLegend.jpg" /></div>
+
+    <div>
+        <table border="1">
+            <caption ">研究区2000~2015年草原沙化状况（面积：km<sup>2</sup>；比例：%）</caption>
+            <tr><th rowspan="2">土地类型</th><th colspan="2">2000年</th><th colspan="2">2005年</th><th colspan="2">2010年</th><th colspan="2">2015年</th></tr>
+            <tr><th>面积</th><th>比例</th><th>面积</th><th>比例</th><th>面积</th><th>比例</th><th>面积</th><th>比例</th></tr>
+            @foreach (var type in sandClassList)
+            {
+                <tr>
+                    <th>@type</th>
+                    @foreach (var record in @Model.SandificationAreaStatisticsByClassList.Where(q => q.ClassifyType == type).ToList<SandificationAreaDto>())
+                    {
+                        <td>@record.Area</td>
+                        <td>@String.Format("{0:F}", record.Ratio * 100)%</td>
+                    }
+                </tr>
+            }
+            <tr>
+                <th>各类草地小计</th>
+                @foreach (var record in @Model.SandificationAreaSummationList.Where(q => q.IsrangeLand == 1).ToList<SandAreaSummationDto>())
+                {
+                    <td>@record.AreaSum</td>
+                    <td>@String.Format("{0:F}", record.RatioSum * 100)%</td>
+                }
+            </tr>
+            @foreach (var type in noSandClassList)
+            {
+                <tr>
+                    <th>@type</th>
+                    @foreach (var record in @Model.SandificationAreaStatisticsByClassList.Where(q => q.ClassifyType == type).ToList<SandificationAreaDto>())
+                    {
+                        <td>@record.Area</td>
+                        <td>@String.Format("{0:F}", record.Ratio * 100)%</td>
+                    }
+                </tr>
+            }
+            <tr>
+                <th>其他合计</th>
+                @foreach (var record in @Model.SandificationAreaSummationList.Where(q => q.IsrangeLand == 0).ToList<SandAreaSummationDto>())
+                {
+                    <td>@record.AreaSum</td>
+                    <td>@String.Format("{0:F}", record.RatioSum * 100)%</td>
+                }
+            </tr>
+        </table>
+    </div>
+    <div>             
+        <div id="container-pie" style="min-width: 500px; height: 400px; max-width: 500px; margin: 50px auto 10px auto; float: left"></div>
+        <div id="container-column" style="min-width: 500px; height: 400px; max-width: 500px; margin: 50px auto 10px auto; float: left"></div>
+    </div>
+
+</div>
+
+<!--sandi_inversion-->
+<div id="SandInversion">
+    <ul>
+        @foreach (var layer in @Model.SandTransitionList)
+        {
+            <li><input class="SandTransition" name="SandTransition" id="@layer.LayerName" type="radio" value="@layer.ServiceAuth" /><a onclick="App.MapBase.Dom.byId('@layer.LayerName').click()">@layer.LayerCnName</a></li>
+        }
+    </ul>
+    <div id="info" style="text-align:left; margin-top:10px;"><img style="width:150px; height:300px;" src="../map/images/sandTransition.jpg" /></div>
+    <div>
+        <table border="1">
+            <caption>2000~2015年草地沙化程度发展趋势统计（面积：km<sup>2</sup>）</caption>
+            <tr><th>发展趋势</th><th>2000~2005年</th><th>2005~2010年</th><th>2010~2015年</th><th>2000~2015年</th></tr>
+            @foreach (var type in sandChangeClassList)
+            {
+                <tr>
+                    <th>@type</th>
+                    @foreach (var interval in sandChangeIntervalList)
+                    {
+                        foreach (var record in @Model.SandificationChangeList.Where(q => (q.ChangeTrend == type && q.YearInterval == interval)).ToList<SandificationChangeDto>())
+                        {
+                            <td>@record.Area</td>
+                        }
+                    }
+                </tr>
+            }
+        </table>
+    </div>
+    <div>
+        <div id="container-column-SandInversion" style="min-width: 500px; height: 400px; max-width: 500px; margin: 50px auto 10px auto; float: left"></div>
+    </div>
+</div>
+
+<div id="SandChartDistribution">
+    <div style="margin-top:20px;">
+        <ul>
+            @foreach (var TypeLayer in @Model.SandChartDistribution)
+            {
+                <li><input class="SandChartDistribution" name="ratsVermin" id="@TypeLayer.LayerName" type="checkbox" value="@TypeLayer.ServiceAuth" /><a onclick="App.MapBase.Dom.byId('@TypeLayer.LayerName').click()">@TypeLayer.LayerCnName</a></li>
+            }
+        </ul>
+    </div>
+    <div id="info" style="text-align:left; margin-top:10px;"><img style=" width:193px; height:246px;" src="~/map/images/sandChartDIS.jpg" /></div>
+</div>
+
+<div id="funcPanel" class="funcPanel panel-show" style="width: 550px; height: 90%; position: absolute; z-index: 2; top: 20px; right: 10px; margin-top: 4px">
+    <div id="tc"></div>
+</div>
+
+<div id="panel-button" class="panel-button-right"></div>

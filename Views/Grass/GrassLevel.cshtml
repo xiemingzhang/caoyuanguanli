@@ -1,0 +1,168 @@
+﻿@using GrassPlantInfo.Entity
+@{
+    ViewBag.Title = "GrassLevel"; //草原类型及面积质量分级及面积
+    T_GrassCountyStatistics entity = ViewBag.model;
+    int id = entity.StatisticsId ?? 0;
+    Layout = null;
+}
+<table id="WL" class="easyui-datagrid" title="质量分级及面积操作表" url="/Grass/QualityGrade/@id" method="post" style="width:720px;height:auto"
+       data-options="
+                iconCls: 'icon-edit',
+                singleSelect: true,
+                toolbar: '#WLb',
+                fitColumns: true,
+                rownumbers: true,
+                onClickCell: onClickCell2,
+                onEndEdit: onEndEdit2
+            ">
+    <thead>
+        <tr>
+            <th field="Id" hidden="true">Id</th>
+            <th data-options="field:'EnumId',align:'left',width:120,
+                         formatter:function(value,row){
+                            return GetTypeName(row.EnumId);
+                        },
+                        editor:{
+                            type:'combobox',
+                            options:{
+                                valueField:'Id',
+                                textField:'Name',
+                                data:[{Id: 11,Name: '优质高产'},{Id: 12,Name: '优质中产'},{Id: 13,Name: '优质低产'},{Id: 14,Name: '中质高产'},{Id: 15,Name: '中质中产'},{Id: 16,Name: '中质低产'},{Id: 17,Name: '劣质高产'},{Id: 18,Name: '劣质中产'},{Id: 19,Name: '劣质低产'}]
+                }
+                }">质量分级</th>
+            <th data-options="field:'Area',width:140,align:'left',editor:'textbox'">面积</th>
+        </tr>
+    </thead>
+</table>
+<input type="hidden" id="weightarea" name="weightarea" />
+<div id="WLb" style="height:auto">
+    <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-add',plain:true" onclick="append2()">添加</a>
+    <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-remove',plain:true" onclick="removeit2()">删除</a>
+    <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-save',plain:true" onclick="accept2()">保存</a>
+    <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-undo',plain:true" onclick="reject2()">撤销</a>
+    <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-search',plain:true" onclick="getChanges2()">获取更改行</a>
+</div>
+<script type="text/javascript">
+    var editIndex2 = undefined;
+    function endEditing2() {
+        if (editIndex2 == undefined) { return true }
+        $('#WL').datagrid('endEdit', editIndex2);
+        editIndex2 = undefined;
+        return true;
+    }
+    function onClickCell2(index, field) {
+        if (editIndex2 != index) {
+            if (endEditing2()) {
+                $('#WL').datagrid('selectRow', index)
+                        .datagrid('beginEdit', index);
+                var ed = $('#WL').datagrid('getEditor', { index: index, field: field });
+                if (ed) {
+                    ($(ed.target).data('textbox') ? $(ed.target).textbox('textbox') : $(ed.target)).focus();
+                    //($(ed.target).data('combobox') ? $(ed.target).combobox('textbox') : $(ed.target)).focus();
+                }
+                editIndex2 = index;
+            } else {
+                setTimeout(function () {
+                    $('#WL').datagrid('selectRow', editIndex2);
+                }, 0);
+            }
+        }
+    }
+    function onEndEdit2(index, row) {
+        var ed = $(this).datagrid('getEditor', {
+            index: index,
+            field: 'EnumId'
+        });
+        $(ed.target).focus();
+        row.Name = $(ed.target).combobox('getText');
+        if (isNaN($(ed.target).combobox('getValue')))
+        { }
+        else
+        { row.EnumId = $(ed.target).combobox('getValue'); }
+    }
+    function append2() {
+        var index = $('#WL').datagrid('getRowIndex', $('#WL').datagrid('getSelected'));
+        if (index == -1)
+            index = 0;
+        $("#WL").datagrid("insertRow", {
+            index: index + 1,
+            row: { oper: "<a href='javascript:append()'>+<a> <a href='javascript:removeit()'>-<a>", status: 'P' }
+        });
+    }
+    function removeit2() {
+        $.messager.confirm('系统提示', '您确定要删除吗?', function (r) {
+            if (r) {
+                if (editIndex2 == undefined) { return }
+                $('#WL').datagrid('selectRow', editIndex2);
+                var rows = $('#WL').datagrid('getRows');
+                var row = rows[editIndex2];
+                if (row.Id != undefined) {
+                    $.ajax({
+                        async: false,
+                        type: "post",
+                        url: "/Grass/DeleteLevelType",
+                        data: { Id: row.Id },
+                        success: function (result) {
+                            $('#WL').datagrid('reload');//刷新
+                        }
+                    });
+                }
+                $('#WL').datagrid('cancelEdit', editIndex2)
+                   .datagrid('deleteRow', editIndex2);
+                editIndex2 = undefined;
+            }
+        });
+    }
+    function accept2() {
+        if (endEditing2()) {
+            var $WL = $('#WL');
+            var allstring = "";
+            var allarray = new Array();
+            $("#weightarea").val("");
+            var rows = $WL.datagrid('getChanges');
+            if (rows.length) {
+                var inserted = $WL.datagrid('getChanges', "inserted");
+                var deleted = $WL.datagrid('getChanges', "deleted");
+                var updated = $WL.datagrid('getChanges', "updated");
+                var insertstring = "";
+                var effectRow = new Object();
+                if (inserted.length) {
+                    effectRow["inserted"] = JSON.stringify(inserted);
+                    for (var i = 0; i < inserted.length; i++) {
+                        allarray.push("," + inserted[i].EnumId + "," + inserted[i].Area);
+                    }
+                }
+                if (deleted.length) {
+                    effectRow["deleted"] = JSON.stringify(deleted);
+                }
+                if (updated.length) {
+                    effectRow["updated"] = JSON.stringify(updated);
+                    for (var i = 0; i < updated.length; i++) {
+                        allarray.push(updated[i].Id + "," + updated[i].EnumId + "," + updated[i].Area);
+                    }
+                }
+                allstring = allarray.join(";");
+                $("#weightarea").val(allstring);
+            }
+        }
+    }
+
+    function reject2() {
+        $('#WL').datagrid('rejectChanges');
+        editIndex2 = undefined;
+    }
+    function getChanges2() {
+        var rows = $('#WL').datagrid('getChanges');
+        alert(rows.length + ' rows are changed!');
+    }
+
+    function contains(arr, obj) {
+        var i = arr.length;
+        while (i--) {
+            if (arr[i] === obj) {
+                return true;
+            }
+        }
+        return false;
+    }
+</script>

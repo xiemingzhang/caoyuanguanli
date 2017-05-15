@@ -1,0 +1,235 @@
+﻿
+@{
+    Layout = "~/Views/Shared/_ContentLayout.cshtml";
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <link href="/Css/default.css" rel="stylesheet" type="text/css" />
+    @*<link href="/Css/common.css" rel="stylesheet" type="text/css" />*@
+    <link rel="stylesheet" type="text/css" href="/js/EasyUi/themes/default/easyui.css" />
+    <link rel="stylesheet" type="text/css" href="/js/themes/icon.css" />
+    <script src="/js/jquery-1.10.2.min.js"></script>
+    <script type="text/javascript" src="/js/EasyUi/jquery.easyui.min.js"></script>
+
+    <link href="~/map/map/map_CSS/MapCss.css" rel="stylesheet" />
+    <script src="~/map/map/map_JS/jsBase.js" type="text/javascript"></script>
+    <script src="~/map/map/map_JS/jsGIS.js" type="text/javascript"></script>
+
+    <script type="text/javascript">
+    var g_oDom = null;
+    var g_oEsriMap = null;
+    var g_oLyrMonitorSite = null;
+    var g_oInfoTemplate = null;
+    var g_InfoWindowUrl = "/BaseDataManage/GetSamplotDetail";
+    //g_InfoWindowUrl = "/BaseDataManage/GetSamplotDetail?Id=640323201692011104"
+
+    require(["dojo/parser","dojo/domReady!"],function(parser){parser.parse();});
+
+    function onPageLoad() {
+        initDisp();
+        //create a new esriMap object
+        g_oEsriMap = oEsriMap.createNew("mapDiv");
+        //create dom object
+        g_oDom = oClsDom.createNew();
+
+        createToolbar(g_oEsriMap);
+        //initiate the esriMap object newly created
+        with (g_oEsriMap) {
+            var baseMapSvs = @Html.Raw(ViewData["strSerializationGeoSvs"])
+            setBasemap(oEsriBaseMap.createNew(baseMapSvs.AuthoUrl,"bmap"));
+            showLabels = true;
+        }
+        @{
+               var ss = @ViewData["strMonitorSiteLyrSvs"];
+
+
+           }
+    var oMonitorLayer = @Html.Raw(ViewData["strMonitorSiteLyrSvs"])
+    //instantiate feature layer object currently operated
+    g_oLyrMonitorSite = clsMonitorSiteLayer.createNew(oMonitorLayer.AuthoUrl);
+        //initiate the monitor site layer
+    with(g_oLyrMonitorSite)
+    {
+        //set layer renderer
+        //setRenderer(clsSimplePictureRenderer.createNew(oMonitorLayer.strSymbolPicSrc));
+        //set label
+        setLabelingInfo([clsLabelClass.createNew(oMonitorLayer.strLabelField)]);
+    }
+
+    var strNXadminSvsUrl = "http://1.202.195.251:6080/arcgis/rest/services/nx_caodiao/nx_county_bianjie/MapServer";
+    var oCountyTiledMap = oEsriArcGISTiledMapServiceLayer.createNew(strNXadminSvsUrl);
+    g_oEsriMap.addLayer(oCountyTiledMap);
+
+
+        //instantiate a clsInfoTemplate object
+    var infocontent = "<div><iframe width='98%' height='90%' src='" + g_InfoWindowUrl + "?Id=${SPlotID}" + "'></iframe></div>";
+       
+        //g_oInfoTemplate = new clsInfoTemplate.createNew(oMonitorLayer.oInfoTemplate);
+    g_oInfoTemplate = new clsInfoTemplate.createNew("信息", infocontent);
+
+        //load monitor site layer
+    g_oEsriMap.addLayer(g_oLyrMonitorSite);
+    g_oEsriMap.infoWindow.resize(400, 300);
+
+    oSearchWidget.createNew('search');
+
+        //attach map "mouse-move" event with function
+    g_oEsriMap.on("mouse-move", function (evt) {
+        var mapPoint = evt.mapPoint;
+        var strHtml = "X:" + mapPoint.x + "<br/>";
+        strHtml += "Y:" + mapPoint.y + "<br/>";
+        document.getElementById("CurCoor").innerHTML = strHtml;
+    });
+
+    }
+
+   function createToolbar(map) {
+            require([
+            "esri/toolbars/navigation",
+            "dijit/registry",
+            "dijit/Toolbar",
+            "dojo/on",
+            "dijit/form/Button"], function (Navigation, registry
+            , Toolbar, on, Button
+            ) {
+                var navToolbar = new Navigation(map);
+                on(navToolbar, "onExtentHistoryChange", extentHistoryChangeHandler);
+
+                registry.byId("zoomin").on("click", function () {
+                    g_oLyrMonitorSite.setInfoTemplate(null);
+                    navToolbar.activate(Navigation.ZOOM_IN);
+                    setOpetionSate("放大");
+                });
+
+                registry.byId("zoomout").on("click", function () {
+                    g_oLyrMonitorSite.setInfoTemplate(null);
+                    navToolbar.activate(Navigation.ZOOM_OUT);
+                    setOpetionSate("缩小");
+                });
+
+                registry.byId("zoomfullext").on("click", function () {
+                    g_oLyrMonitorSite.setInfoTemplate(null);
+                    navToolbar.zoomToFullExtent();
+                    setOpetionSate("平移");
+                });
+
+                registry.byId("zoomprev").on("click", function () {
+                    g_oLyrMonitorSite.setInfoTemplate(null);
+                    navToolbar.zoomToPrevExtent();
+                    setOpetionSate("默认");
+                });
+
+                registry.byId("zoomnext").on("click", function () {
+                    g_oLyrMonitorSite.setInfoTemplate(null);
+                    navToolbar.zoomToNextExtent();
+                    setOpetionSate("默认");
+                });
+
+                registry.byId("pan").on("click", function () {
+                    g_oLyrMonitorSite.setInfoTemplate(null);
+                    navToolbar.activate(Navigation.PAN);
+                    setOpetionSate("平移");
+                });
+
+                registry.byId("dinfo").on("click", function () {
+                    g_oLyrMonitorSite.setInfoTemplate(g_oInfoTemplate);
+                    setOpetionSate("信息查询");
+                });
+                registry.byId("print").on("click", function () {
+                    g_oLyrMonitorSite.setInfoTemplate(null);
+                    setOpetionSate("默认");
+                    //on_print(0);
+                });
+
+                function extentHistoryChangeHandler() {
+                    registry.byId("zoomprev").disabled = navToolbar.isFirstExtent();
+                    registry.byId("zoomnext").disabled = navToolbar.isLastExtent();
+                }
+            });
+        }
+
+function initDisp() {
+    var mapheight = document.body.clientHeight - 27;
+    document.getElementById("mapDiv").style.cssText = "height:" + mapheight + "px;";
+
+    var curheight = document.getElementById("CurCoor").style.height;
+    var curoffheight = document.getElementById("CurCoor").offsetHeight;
+    var curwidth = document.getElementById("CurCoor").style.width;
+    var curoffwidth = document.getElementById("CurCoor").offsetWidth;
+
+    var curtop = document.body.clientHeight - curoffheight;
+    var curleft = document.body.clientWidth - curoffwidth;
+    document.getElementById("CurCoor").style.visibility = "visible";
+    document.getElementById("CurCoor").style.position = "absolute";
+    document.getElementById("CurCoor").style.top = curtop + "px";
+    //document.getElementById("CurCoor").style.left = "0px";
+    document.getElementById("CurCoor").style.left = curleft + "px";
+
+    var opeoffheight = document.getElementById("curOpetion").offsetHeight;
+    var opeoffwidth = document.getElementById("curOpetion").offsetWidth;
+
+    var curtop = document.body.clientHeight - opeoffheight;
+    var curleft = document.body.clientWidth - opeoffwidth + 10;
+
+    document.getElementById("curOpetion").style.visibility = "visible";
+    document.getElementById("curOpetion").style.position = "absolute";
+    document.getElementById("curOpetion").style.top = curtop + "px";
+    //document.getElementById("CurCoor").style.left = "0px";
+    document.getElementById("curOpetion").style.left = curleft + "px";
+    setOpetionSate("平移");
+    document.getElementById("navToolbar").style.visibility = "visible";
+}
+// current operation
+function setOpetionSate(state) {
+    document.getElementById("curOpetion").innerHTML = "当前操作:</br>" + state;
+}
+    </script>
+</head>
+
+<body class="claro" onload="onPageLoad()" onresize="initDisp()">
+    <div id="navToolbar" data-dojo-type="dijit/Toolbar" style="visibility: hidden;">
+        <div data-dojo-type="dijit/form/Button" id="zoomin" data-dojo-props="iconClass:'zoominIcon'">
+            放 大
+        </div>
+        <div data-dojo-type="dijit/form/Button" id="zoomout" data-dojo-props="iconClass:'zoomoutIcon'">
+            缩 小
+        </div>
+        <div data-dojo-type="dijit/form/Button" id="zoomfullext" data-dojo-props="iconClass:'zoomfullextIcon'">
+            全 图
+        </div>
+        <div data-dojo-type="dijit/form/Button" id="zoomprev" data-dojo-props="iconClass:'zoomprevIcon'">
+            前一视图
+        </div>
+        <div data-dojo-type="dijit/form/Button" id="zoomnext" data-dojo-props="iconClass:'zoomnextIcon'">
+            下一视图
+        </div>
+        <div data-dojo-type="dijit/form/Button" id="pan" data-dojo-props="iconClass:'panIcon'">
+            平 移
+        </div>
+        <div data-dojo-type="dijit/form/Button" id="dinfo" data-dojo-props="iconClass:'dinfoIcon'">
+            信息
+        </div>
+        <div data-dojo-type="dijit/form/Button" id="print" data-dojo-props="iconClass:'printIcon'">
+            打印
+        </div>
+    </div>
+    <div id="mapDiv" style="width: 100%; height: 100%">
+    </div>
+    <div id="CurCoor">
+    </div>
+    <div id="curOpetion">
+    </div>
+    <div id="search">
+    </div>
+</body>
+</html>
+
+
+
+
+
+
+
+

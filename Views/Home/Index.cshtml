@@ -1,0 +1,31 @@
+﻿@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+}
+<div id="tabs" class="easyui-tabs" fit="true" border="false">
+    <div title="主页" style="overflow:hidden; color:red; ">
+        <div id="container" align="center" style="padding: 0px; height: 98%;margin-top:30px;">   
+        </div>
+        <div class='button-group' style="background-color: #0d9bf2;right: 20px">
+		    <input type="checkbox" checked onclick="toggleScale(this)"/>比例尺
+		    <input type="checkbox" id="overview" onclick="toggleOverViewShow(this)"/>显示鹰眼
+		    <input type="checkbox" id="overviewOpen" disabled onclick="toggleOverViewOpen(this)"/>展开鹰眼
+		</div>
+        <!-- <div id="myPageTop" style="position:absolute;right: 30px;top:65px;background: none 0px 0px repeat scroll rgb(255, 255, 255);border-width: 1px;border-style: solid;border-color: rgb(204, 204, 204);color: #666666;">
+          <table>
+                <tr>
+                    <td>
+                        <label>请输入查询内容：</label>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <input id="tipinput"/>
+                    </td>
+                </tr>
+          </table>
+        </div> -->
+        <!-- <div style="padding: 0px; height: 10%">
+        </div> -->
+    </div>
+</div>

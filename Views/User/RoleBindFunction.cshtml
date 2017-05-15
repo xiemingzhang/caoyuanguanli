@@ -1,0 +1,73 @@
+﻿@{
+
+    Layout = null;
+}
+@using GrassPlantInfo.Contract.DTO.Admin;
+@using GrassPlantInfo.Contract.Enum;
+@model RolesDto
+@Html.HiddenFor(x => x.RoleID)
+<link href="~/css/ztree/zTreeStyle/zTreeStyle.css" rel="stylesheet" />
+<script src="~/js/ztree/jquery.ztree.core.js"></script>
+<script src="~/js/ztree/jquery.ztree.excheck.js"></script>
+<script type="text/javascript">
+
+		var setting = {
+			check: {
+				enable: true
+			},
+			data: {
+				simpleData: {
+					enable: true
+				}
+			},
+			callback: {
+			    onCheck: function (event, treeId, treeNode) {
+			    }
+			}
+		};
+		function bindfunc() {
+		    var treeObj = $.fn.zTree.getZTreeObj("tree");
+		    nodes = treeObj.getCheckedNodes(true);
+		    var data = { json: JSON.stringify(nodes), RoleID: $("#RoleID").val() };
+		    $.post("/user/bindfunction"
+                , data
+                , function (result) {
+		        if (result.Code == -1) {
+		            $.messager.alert('提示', result.Msg);
+		            return false;
+		        }
+		        else {
+		            location.reload();
+		        }
+		    });
+		}
+		$(document).ready(function () {
+		    $.ajax({
+		        type: "post",
+		        url: "/User/GetFunctionList",
+		        data: { RoleID: $("#RoleID").val()},
+		        success: function (result) {
+		            if (result)
+		            {
+		                var tree = [];
+		                $.each(result, function (i, o) {
+		                    node = {
+		                        id: o.id,
+		                        pId: o.pId,
+		                        name: o.name,
+		                        open: o.open,
+		                        checked: o.check,
+		                        AddDisplay: true
+		                    }
+		                    tree.push(node);
+		                });
+		                $.fn.zTree.init($("#tree"), setting, tree);
+		                setting.check.chkboxType = { "Y": "ps", "N": "ps" };
+		            }
+		        }
+		    });
+		});
+</script>
+
+<a href="javascript:bindfunc()" class="easyui-linkbutton" iconcls="icon-save" plain="true">保存</a>
+<ul id="tree" class="ztree"></ul>

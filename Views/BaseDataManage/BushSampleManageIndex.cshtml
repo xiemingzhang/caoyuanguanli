@@ -1,0 +1,362 @@
+﻿@{
+    Layout = null;
+}
+ 
+@using GrassPlantInfo.Entity;
+@using GrassPlantInfo.Contract.DTO.Admin;
+@using GrassPlantInfo.Contract.Enum;
+@using GrassPlantInfo.CommonTools;
+@model BushSampleDto
+@{
+    var t = (EnumOperation)ViewBag.Type;
+    bool isDetail = (t == EnumOperation.DETAIL) ? true : false;
+}
+@Html.Hidden("Type", (int)t)
+@Html.HiddenFor(x => x.Id)
+
+<script>
+    var i = 0;
+    function max() {
+        MImg = MainImg.style.pixelWidth += i++;
+        if (MImg * ratio < 300) {
+            MainImg.style.pixelHeight = MImg * ratio
+            setTimeout('max()', 100)
+        }
+    }
+
+    function min() {
+        MImg = MainImg.style.pixelWidth -= i--;
+        if (MImg * ratio > 80) {
+            MainImg.style.pixelHeight = MImg * ratio
+            setTimeout('min()', 100)
+        }
+    }
+
+    function init() {
+        ratio = MainImg.height / MainImg.width;
+        MainImg.style.pixelWidth = 100;
+        MainImg.style.pixelHeight = 80;
+    }
+    onload = init;
+</script>
+
+<div style="margin-top:-10px; margin-left:-8px;">
+    <div id="toolbar" style="background: #f9f9f9; padding: 10px; height:20px; ">
+                    @{
+                        if (!isDetail)
+                        {
+                            <a href="javascript:ModelDataOp.submit()" class="easyui-linkbutton" iconcls="icon-save" plain="true">保存</a>
+                        }
+                    }
+    </div>
+    <div id="list" style="background: #f9f9f9; height:80% ">
+        <table style="font-size: 12px; font-family: '微软雅黑'; margin: 0; padding: 0; background-color: #f3f3f3; " width="100%" align="center" id="tb_content">
+            <tr>
+                <td style="width:100px" align="right"> 样地：</td>
+                <td style="width:200px">
+                    @if (t == EnumOperation.DETAIL)
+                    {
+                        @Html.DisplayFor(n => n.SamplePlotID)
+                    }
+                    else if (t == EnumOperation.EDIT)
+                    {
+                        @Html.DropDownListFor(n => n.SamplePlotID, ViewData["SamplePlotList"] as IEnumerable<SelectListItem>, new { @class = "easyui-combobox", id = "selectedSamplePlotID", readOnly = "readOnly",editable="false", @style = "width:192px;height:22px", @required = "true" })
+                    }
+                    else
+                    { 
+                        @Html.DropDownListFor(n => n.SamplePlotID, ViewData["SamplePlotList"] as IEnumerable<SelectListItem>, new { @class = "easyui-combobox", id = "selectedSamplePlotID", editable = "false", @style = "width:192px;height:22px", @required = "true" })
+                    }
+                </td>
+            </tr>
+            <tr>
+                <td style="width:100px" align="right"> 年份：</td>
+                <td style="width:200px">
+                @if (isDetail)
+                {
+                     @Html.DisplayFor(n => n.Year)
+                }
+                else
+                { 
+                     @Html.TextBoxFor(n => n.Year, new { @class = "easyui-numberbox textbox Year",  @style = "width:192px;height:22px" })
+                }
+                </td>
+            </tr>
+            <tr>
+                <td style="width:100px" align="right"> 东经：</td>
+                <td style="width:200px">
+                    @*,precision="20" ,@required = "true",*@
+                @if (isDetail)
+                {
+                    @Html.DisplayFor(n => n.Longitude)
+                }
+                else
+                { 
+                    @Html.TextBoxFor(n => n.Longitude, new { @class = "easyui-validatebox textbox", id = "Longitude",  @missingMessage = "东经", @style = "width:192px;height:22px" })
+                } 
+                </td>
+            </tr>
+
+            <tr>
+                <td style="width:100px" align="right"> 北纬：</td>
+                <td style="width:200px">
+                @if (isDetail)
+                {
+                    @Html.DisplayFor(n => n.Latitude)
+                }
+                else
+                { 
+                    @Html.TextBoxFor(n => n.Latitude, new { @class = "easyui-validatebox textbox", id = "Latitude", @style = "width:192px;height:22px", precision = "2" })
+                }
+                </td>
+            </tr>
+
+            <tr>
+                <td style="width:100px" align="right"> 海拔：</td>
+                <td style="width:200px">
+                @if (isDetail)
+                {
+                     @Html.DisplayFor(n => n.Altitude)
+                }
+                else
+                { 
+                    @Html.TextBoxFor(n => n.Altitude, new { @class = "easyui-numberbox", id = "Altitude", @style = "width:192px;height:22px", precision = "2" })
+                }
+                 
+                </td>
+            </tr>
+            <tr>
+                <td style="width:100px" align="right"> 总产草量鲜重：</td>
+                <td style="width:200px">  
+                    @if (isDetail)
+                    {
+                        @Html.DisplayFor(n => n.TotalGrassFreshWeight)
+                    }
+                    else
+                    { 
+                        @Html.TextBoxFor(n => n.TotalGrassFreshWeight, new { @class = "easyui-numberbox", id = "TotalGrassFreshWeight", @style = "width:192px;height:22px", precision = "2" })
+                    }
+                </td>
+            </tr>
+            <tr>
+                <td style="width:100px" align="right"> 总产草量风干重：</td>
+                <td style="width:200px">
+                    @if (isDetail)
+                    {
+                        @Html.DisplayFor(n => n.TotalGrassDryWeight)
+                    }
+                    else
+                    { 
+                        @Html.TextBoxFor(n => n.TotalGrassDryWeight, new { @class = "easyui-numberbox ", id = "TotalGrassDryWeight", @style = "width:192px;height:22px", precision = "2" })
+                    }
+                </td>
+            </tr>
+            <tr>
+                <td style="width:100px" align="right"> 可食草量鲜重：</td>
+                <td style="width:200px">
+                    @if (isDetail)
+                    {
+                        @Html.DisplayFor(n => n.EdibleGrassFreshWeight)
+                    }
+                    else
+                    { 
+                        @Html.TextBoxFor(n => n.EdibleGrassFreshWeight, new { @class = "easyui-numberbox", id = "EdibleGrassFreshWeight", @style = "width:192px;height:22px", precision = "2" })
+                    }
+                </td>
+            </tr>
+            <tr>
+                <td style="width:100px" align="right"> 平均产草量风干重（千克每公顷）：</td>
+                <td style="width:200px">
+                    @if (isDetail)
+                    {
+                        @Html.DisplayFor(n => n.AverageGrassDryWeight)
+                    }
+                    else
+                    {
+                        @Html.TextBoxFor(n => n.AverageGrassDryWeight, new { @class = "easyui-numberbox", id = "AverageGrassDryWeight", @style = "width:192px;height:22px", precision = "2" })
+                    }
+                </td>
+            </tr>
+            <tr>
+                <td style="width:100px" align="right"> 平均产草量鲜重（千克每公顷）：</td>
+                <td style="width:200px">
+                    @if (isDetail)
+                    {
+                        @Html.DisplayFor(n => n.AverageGrassFreshWeight)
+                    }
+                    else
+                    {
+                        @Html.TextBoxFor(n => n.AverageGrassFreshWeight, new { @class = "easyui-numberbox", id = "AverageGrassFreshWeight", @style = "width:192px;height:22px", precision = "2" })
+                    }
+                </td>
+            </tr>
+            <tr>
+                <td style="width:100px" align="right">灌木及高大草本种数：</td>
+                <td style="width:200px">
+                    @if (isDetail)
+                    {
+                        @Html.DisplayFor(n => n.BushGrassAmount)
+                    }
+                    else
+                    {
+                        @Html.TextBoxFor(n => n.BushGrassAmount, new { @class = "easyui-numberbox", id = "BushGrassAmount", @style = "width:192px;height:22px", precision = "2" })
+                    }
+                </td>
+            </tr>
+            <tr>
+                <td style="width:100px" align="right">总覆盖面积（平方米）：</td>
+                <td style="width:200px">
+                    @if (isDetail)
+                    {
+                        @Html.DisplayFor(n => n.CoverageArea)
+                    }
+                    else
+                    {
+                        @Html.TextBoxFor(n => n.CoverageArea, new { @class = "easyui-numberbox", id = "CoverageArea", @style = "width:192px;height:22px", precision = "2" })
+                    }
+                </td>
+            </tr>
+            <tr>
+                <td style="width:100px" align="right"> 可食草量鲜重：</td>
+                <td style="width:200px"> 
+                    @if (isDetail)
+                    {
+                        @Html.DisplayFor(n => n.EdibleGrassDryWeight)
+                    }
+                    else
+                    { 
+                        @Html.TextBoxFor(n => n.EdibleGrassDryWeight, new { @class = "easyui-numberbox", id = "EdibleGrassDryWeight", @style = "width:192px;height:22px", precision = "2" })
+                    }
+                </td>
+            </tr>
+            <tr>
+                <td style="width:100px" align="right"> 灌丛平均高度：</td>
+                <td style="width:200px">
+                    @if (isDetail)
+                    {
+                        @Html.DisplayFor(n => n.BushAverageHeight)
+                    }
+                    else
+                    {
+                        @Html.TextBoxFor(n => n.BushAverageHeight, new { @class = "easyui-numberbox", id = "BushAverageHeight", @style = "width:192px;height:22px", precision = "2" })
+                    }
+                </td> 
+            </tr>
+            <tr>
+                <td style="width:100px" align="right">产草量风干重（千克每公顷）：</td>
+                <td style="width:200px">
+                    @if (isDetail)
+                    {
+                        @Html.DisplayFor(n => n.GrassDryWeight)
+                    }
+                    else
+                    {
+                        @Html.TextBoxFor(n => n.GrassDryWeight, new { @class = "easyui-numberbox", id = "GrassDryWeight", @style = "width:192px;height:22px", precision = "2" })
+                    }
+                </td>
+            </tr>
+            <tr>
+                <td style="width:100px" align="right"> 产草量鲜重（千克每公顷）：</td>
+                <td style="width:200px">
+                    @if (isDetail)
+                    {
+                        @Html.DisplayFor(n => n.GrassFreshWeight)
+                    }
+                    else
+                    {
+                        @Html.TextBoxFor(n => n.GrassFreshWeight, new { @class = "easyui-numberbox", id = "GrassFreshWeight", @style = "width:192px;height:22px", precision = "2" })
+                    }
+                </td>
+            </tr>
+            <tr>
+                <td style="width:100px" align="right"> 草群平均高度：</td>
+                <td style="width:200px">
+                    @if (isDetail)
+                    {
+                        @Html.DisplayFor(n => n.AverageHeight)
+                    }
+                    else
+                    { 
+                        @Html.TextBoxFor(n => n.AverageHeight, new { @class = "easyui-numberbox", id = "AverageHeight", @style = "width:192px;height:22px", precision = "2" })
+                    }
+                </td>
+            </tr>
+            <tr>
+                <td style="width:100px" align="right"> 植物盖度：</td>
+                <td style="width:200px"> 
+                    @if (isDetail)
+                    {
+                        @Html.DisplayFor(n => n.CoverageFraction)
+                    }
+                    else
+                    { 
+                        @Html.TextBoxFor(n => n.CoverageFraction, new { @class = "easyui-validatebox textbox", id = "CoverageFraction", @style = "width:192px;height:22px", precision = "2" })
+                    }
+                </td>
+            </tr>
+        </table>
+    </div>
+</div>
+
+<script>
+
+    var ModelDataOp = {
+        pageType: $("#Type").val(),
+        getparam: function (t) {
+            var data = {
+                ID: $.trim($("#Id").val()),
+                CoverageFraction: $.trim($("#CoverageFraction").val()),
+                SamplePlotArea: $("#SamplePlotArea").val(),
+                SamplePlotID: $("#selectedSamplePlotID").combobox("getValue"),
+                SamplePlotName:$("#selectedSamplePlotID").combobox("getText"),
+                eo: this.pageType,
+                Year: $(".Year").val(),
+                Longitude: $("#Longitude").val(),
+                Latitude: $("#Latitude").val(),
+                Altitude: $("#Altitude").val(),
+                TotalGrassFreshWeight: $("#TotalGrassFreshWeight").val(),
+                TotalGrassDryWeight: $("#TotalGrassDryWeight").val(),
+                EdibleGrassFreshWeight: $("#EdibleGrassFreshWeight").val(),
+                EdibleGrassDryWeight: $("#EdibleGrassDryWeight").val(),
+                NonEdibleGrassAmout: $("#NonEdibleGrassAmout").val(),
+                PlantAmout: $("#PlantAmout").val(),
+                BushAverageHeight: $("#BushAverageHeight").val(),
+                GrassFreshWeight: $("#GrassFreshWeight").val(),
+                GrassDryWeight: $("#GrassDryWeight").val(),
+                AverageGrassDryWeight: $("#AverageGrassDryWeight").val(),
+                AverageGrassFreshWeight: $("#AverageGrassFreshWeight").val(),
+                BushGrassAmount: $("#BushGrassAmount").val(),
+                CoverageArea: $("#CoverageArea").val(),
+                AverageHeight: $("#AverageHeight").val()
+            }
+            return data;
+        },
+        check: function () {
+            var bo = true;
+            if ($("#selectedSamplePlotID").combobox("getValue") == '') {
+                $.messager.alert('提示', "样地必选！");
+                bo = false;
+            }
+            return bo;
+        },
+        submit: function () {
+            if (this.check()) {
+                $.ajax({
+                    async: false,
+                    type: "post",
+                    url: "/BaseDataManage/AddBushData",
+                    data: this.getparam(),
+                    success: function (result) {
+                        if (result.Code == -1) {
+                            $.messager.alert('提示', result.Msg);
+                            return false;
+                        }
+                        else {
+                            $.messager.alert('提示', "保存成功。");
+                            location.reload();
+                        }
+                    }
+                });
+            }
+        }
+    }
+</script>

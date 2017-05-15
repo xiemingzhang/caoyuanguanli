@@ -1,0 +1,181 @@
+﻿@{
+
+    Layout = null;
+}
+@using GrassPlantInfo.Contract.DTO.Admin;
+@using GrassPlantInfo.Contract.Enum;
+@model SoilGroupDto
+@{
+    var t = (EnumOperation)ViewBag.Type;
+    bool isDetail = (t == EnumOperation.DETAIL) ? true : false;
+   
+}
+
+@Html.Hidden("Type", (int)t)
+@Html.HiddenFor(x => x.SoilGroupID)
+@Html.HiddenFor(x=>x.SoilOrderID)
+<table width="100%" align="center" id="tb_content">
+    <tr>
+        <td style="width:100px" align="right">所属土纲：</td>
+        <td style="width:200px">
+            @{
+                if (!isDetail)
+                {
+                    <select id="OPFamilyList" class="easyui-combobox" style="width:130px"> </select>
+                }
+                else
+                {
+                    @Html.Label(Model.SoilOrderName)
+                }
+            }
+
+        </td>
+    </tr>
+    <tr>
+        <td style="width:100px" align="right">土类名称：</td>
+        <td style="width:200px">
+            @{
+                if (!isDetail)
+                {
+                    @Html.TextBoxFor(x => x.SoilGroupName, new {@class = "easyui-validatebox textbox", @required = "true", @missingMessage = "土类名称", @style = "width:90%;height:32px", @maxlenth = 30, @data_require = "true" })
+                }
+                else
+                {
+                    @Html.Label(Model.SoilGroupName)
+                }
+            }
+
+        </td>
+    </tr>
+    <tr>
+        <td style="width:100px" align="right">土类代码：</td>
+        <td style="width:200px">
+            @{
+                if (!isDetail)
+                {
+                    @Html.TextBoxFor(x => x.SoilGroupCode, new { @class = "easyui-validatebox textbox", @required = "true", @missingMessage = "土类代码", @style = "width:90%;height:32px", @maxlenth = 30, @data_require = "true" })
+                }
+                else
+                {
+          
+                    @Html.Label(string.IsNullOrEmpty(Model.SoilGroupCode) ? "" : Model.SoilGroupCode)
+                }
+            }
+
+        </td>
+    </tr>
+    @{
+
+        if (!isDetail)
+        {
+            <tr>
+                <td style="width:100px" colspan="2" align="center"><a href="javascript:plantGeneraOp.submit()" class="easyui-linkbutton" iconcls="icon-save" plain="true">保存</a></td>
+
+            </tr>
+        }
+    }
+</table>
+<script>
+        var plantGeneraOp = {
+            pageType: $("#Type").val(),
+            getparam: function (t) {
+                var data = {
+                    SoilGroupName: $.trim($("#SoilGroupName").val()),
+                    SoilGroupID: $("#SoilGroupID").val(),
+                    SoilGroupCode: $.trim($("#SoilGroupCode").val()),
+                    eo: this.pageType,
+                    SoilOrderID: $("#OPFamilyList").combobox('getValue')
+                }
+                return data;
+            },
+            initSelect: function () {
+                $.ajax({
+                    type: "post",
+                    url: "/Soil/GetFamilyList",
+                    success: function (result) {             
+                        var data = []
+                        $.each(result, function (i, o) {
+                            var item = {
+                                id: o.id, text: o.text, value: o.id
+                            }
+                            data.push(item);
+                        })
+                        $("#OPFamilyList").combobox("loadData", data);
+                        var curfid = $("#SoilOrderID").val();
+                        if ($("#Type").val() == 2)
+                        {
+                            $("#OPFamilyList").combobox('setValue', $("#SoilOrderID").val());
+                        }
+                        
+                    }
+                });
+            },
+            check: function () {
+                var bo = true;
+                
+                //验证下拉框
+                var familyID = $("#OPFamilyList").combobox('getValue');             
+                if (familyID == "0" || familyID == "") {
+                    $.messager.alert('提示', "请选择所属土纲！");
+                    bo = false;
+                    return false;
+                }
+                //验证文本框
+                var inputlist = $("#tb_content input[type='text']");
+                $.each(inputlist, function (i, o) {
+                    if ($.trim($(o).val()).length == 0) {
+                        var text = $(o).parent().prev("td").text().replace(":", "").replace("：", "").replace("*", "")
+                        $.messager.alert('提示', text + "不能为空");
+                        bo = false;
+                        return false;
+                    }
+
+                });
+                
+                if (bo) {
+                    $.ajax({
+                        async: false,
+                        type: "post",
+                        url: "/Soil/ValidatePlantGeneraName",
+                        data: { GeneraName: $.trim($("#GeneraName").val()), GeneraID: $("#GeneraID").val(), eo: this.pageType },
+                        success: function (result) {
+                            if (result.Code == -1) {
+                                $.messager.alert('提示', result.Msg);
+                                bo = false;
+                                return false;
+                            }
+                        }
+                    });
+                }
+                return bo;
+            },
+            submit: function (t) {
+                if (this.check()) {
+                    $.ajax({
+                        async: false,
+                        type: "post",
+                        url: "/Soil/PlantGeneraOp",
+                        data: this.getparam(),
+                        success: function (result) {
+                            if (result.Code == -1) {
+                                $.messager.alert('提示', result.Msg);
+                                return false;
+                            }
+                            else {
+                                location.reload();
+                            }
+                        }
+                    });
+                }
+            }
+        }
+
+
+
+        $(document).ready(function () {
+            if (plantGeneraOp.pageType != 4)
+                plantGeneraOp.initSelect()
+        });
+
+
+</script>

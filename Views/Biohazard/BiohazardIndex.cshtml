@@ -1,0 +1,252 @@
+﻿@{
+    Layout = "~/Views/Shared/_ContentLayout.cshtml";
+    string isDisplaySet = "", isDisplayEdit = "", isDisplayAdd = "", isDisplayDel = "", isDisplayImport = "", isDisplayExport = "";
+    if (ViewData["btnDisplay"] != null)
+    {
+        isDisplayAdd = ((ControlButtonDto)ViewData["btnDisplay"]).AddDisplay  ? "visible" : "hidden";
+        isDisplayEdit = ((ControlButtonDto)ViewData["btnDisplay"]).EditDisplay  ? "visible" : "hidden";
+        isDisplayDel = ((ControlButtonDto)ViewData["btnDisplay"]).DelDisplay ? "visible" : "hidden";
+        isDisplayImport = ((ControlButtonDto)ViewData["btnDisplay"]).ImportDisplay  ? "visible" : "hidden";
+        isDisplaySet = ((ControlButtonDto)ViewData["btnDisplay"]).SetDisplay ? "visible" : "hidden";
+        isDisplayExport = ((ControlButtonDto)ViewData["btnDisplay"]).ExportDisplay  ? "visible" : "hidden";
+    }
+}
+@using GrassPlantInfo.Contract.DTO.Admin;
+ 
+<style>
+    .datagrid-row {
+        height: 32px;
+    }
+</style>
+<div style="margin-top:-10px; margin-left:-8px;">
+    <div id="titlebar" style="background: #f9f9f9; padding: 10px; ">
+        <b>当前位置：</b> 草原管理系统 > 草原生物灾害 > 生物灾害
+    </div>
+</div>
+<div style="margin-top:-10px; margin-left:-8px;">
+    <div id="toolbar" style="background: #f9f9f9; padding: 10px; height:20px; ">
+        种名： <input class="textbox" style="height:18px; width:10%;" id="BioName"  />
+        目名:  <select id="MuList" class="easyui-combobox" style="width:130px"> </select>
+        科名:  <select id="KeList" class="easyui-combobox" style="width:130px"> </select>
+        属名:  <select id="ShuList" class="easyui-combobox" style="width:130px"> </select>
+        <a href="javascript:Bioh.list()" id="Search" class="easyui-linkbutton" plain="true" iconcls="icon-search">查询</a>
+        <a href="javascript:Bioh.add()" id="add" style="visibility:@isDisplayAdd" class="easyui-linkbutton" plain="true" iconcls="icon-add">新增</a>
+    </div>
+    <div id="list"></div>
+    <div id="w"></div>
+</div>
+<script>
+    var Bioh = {
+        getparam: function () {
+            var data = {
+                BioName: $.trim($("#BioName").val()),
+                OrderId: $("#MuList").combobox('getValue')=="0"?"":$("#MuList").combobox('getValue'),
+                FamilyId: $("#KeList").combobox('getValue')=="0"?"":$("#KeList").combobox('getValue'),
+                GenusId: $("#ShuList").combobox('getValue') == "0" ? "" : $("#ShuList").combobox('getValue')
+            }
+            return data;
+        },
+        initMuSelect: function () {
+            $.ajax({
+                async: false,
+                type: "post",
+                url: "/Biohazard/GetOrderList",
+                success: function (result) {
+                    var data = []
+                    $.each(result, function (i, o) {
+                        var item = {
+                            id: o.id, text: o.text, value: o.id
+                        }
+                        data.push(item);
+                    })
+                    $("#MuList").combobox("loadData", data);
+                    $("#MuList").combobox('setValue', "0");
+                }
+            });
+        },
+        initKeSelect: function () {
+            if ($("#MuList").combobox('getValue') != 0) {
+                $.ajax({
+                    async: false,
+                    url: "/Biohazard/GetFamilyListByOrderId?pId=" + $("#MuList").combobox('getValue'),
+                    success: function (result) {
+                        var data = []
+                        $.each(result, function (i, o) {
+                            var item = {
+                                id: o.id, text: o.text, value: o.id
+                            }
+                            data.push(item);
+                        })
+                        $("#KeList").combobox("loadData", data);
+                        $("#KeList").combobox('setValue', 0);
+                    }
+                });
+            }
+            else {
+                var data = []
+                var item = {
+                    id: 0, text: "请选择", value: 0
+                }
+                data.push(item);
+                $("#KeList").combobox("loadData", data);
+                $("#KeList").combobox('setValue', 0);
+            }
+        },
+        initShuSelect: function () {
+            if ($("#KeList").combobox('getValue') != 0) {
+                $.ajax({
+                    async: false,
+                    url: "/Biohazard/GetGenusListByFamilyId?Id=" + $("#KeList").combobox('getValue'),
+                    success: function (result) {
+                        var data = []
+                        $.each(result, function (i, o) {
+                            var item = {
+                                id: o.id, text: o.text, value: o.id
+                            }
+                            data.push(item);
+                        })
+                        $("#ShuList").combobox("loadData", data);
+                        $("#ShuList").combobox('setValue', 0);
+                    }
+                });
+            }
+            else {
+                var data = []
+                var item = {
+                    id: 0, text: "请选择", value: 0
+                }
+                data.push(item);
+                $("#ShuList").combobox("loadData", data);
+                $("#ShuList").combobox('setValue', 0);
+            }
+        },
+        list: function () {
+            $('#list').datagrid({
+                fit: false,
+                url: '/Biohazard/BioList',
+                method: 'POST',
+                loadMsg: "加载中,请耐心等待",
+                queryParams: this.getparam(),
+                striped: true,
+                fitColumns: true,
+                singleSelect: true,
+                rownumbers: true,
+                pagination: true,
+                nowrap: false,
+                pageSize: 10,
+                pageList: [10, 15, 30, 50],
+                showFooter: true,
+                columns: [[
+                    { field: 'BioId', hidden: true },
+                    { field: 'BioName', title: '种名', width: 50, align: 'center' },
+                    { field: 'BioAlias', title: '别名', width: 50, align: 'center' },
+                    { field: 'BioLatinName', title: '拉丁学名', width: 50, align: 'center' },
+                    { field: 'OrderId', title: '目名', width: 50, align: 'center' },
+                    { field: 'FamilyId', title: '科名', width: 80, align: 'center' },
+                    { field: 'GenusId', title: '属名', width: 50, align: 'center' },
+                    {
+                        field: 'Feature', title: '形态特征', width: 180, align: 'center',
+                        formatter: function (val, rec) {
+                            if (rec.Feature != null && rec.Feature.length > 70) {
+                                return rec.Feature.substring(0, 70) + "......."
+                            }
+                            return rec.Feature;
+                        }
+                    },
+                    {
+                        field: 'Habit', title: '生活习性', width: 180, align: 'center',
+                        formatter: function (val, rec) {
+                            if (rec.Habit != null && rec.Habit.length > 70) {
+                                return rec.Habit.substring(0, 70) + "......."
+                            }
+                            return rec.Habit;
+                        }
+                    },
+                    { field: 'Distribution', title: '地理分布', width: 80, align: 'center' },
+                    //{ field: 'DistributionMap', title: '分布图', width: 50, align: 'center' },
+                    //{ field: 'FeaturePic', title: '形态特征图', width: 50, align: 'center' },
+                    {
+                        field: 'cz', title: '操作', width: 90, align: 'center',
+                        formatter: function (val, rec) {
+                            var html = "<a class='easyui-linkbutton btnShow' plain='true' href='javascript:Bioh.detail(" + rec.BioId + ");' title='查看详情' ></a>&nbsp;&nbsp;&nbsp;";
+                            html += "<a class='easyui-linkbutton btnEdit' plain='true' style='visibility:@isDisplayEdit'  href='javascript:Bioh.edit(" + rec.BioId + ");' title='编辑'></a>&nbsp;&nbsp;&nbsp;";
+                            html += "<a class='easyui-linkbutton btnDelete' plain='true' style='visibility:@isDisplayDel' href='javascript:Bioh.del(" + rec.BioId + ");' title='删除'></a>";
+                            return html;
+                        }
+                    }
+                ]],
+                onLoadSuccess: function () {
+                    $(".btnShow").linkbutton({
+                        iconCls: "icon-show"
+                    });
+                    $(".btnEdit").linkbutton({
+                        iconCls: "icon-edit"
+                    });
+                    $(".btnDelete").linkbutton({
+                        iconCls: "icon-delete"
+                    });
+                }
+            });
+            $("#list").datagrid("getPager").pagination({
+                beforePageText: '第',
+                afterPageText: '页    共 {pages} 页',
+                pageList: [10, 15, 30, 50],
+                displayMsg: "显示 {from} 到 {to} 条记录 ,  共 {total} 条记录"
+            });
+        },
+        add: function () {
+            parent.addTab("添加生物灾害", "/Biohazard/BioDetailIndex?eo=1");
+        },
+        detail: function (fid) {
+            parent.addTab("编辑生物灾害", "/Biohazard/BioDetailIndex?eo=4&&BioId=" + fid);
+        },
+        edit: function (fid) {
+            parent.addTab("编辑生物灾害", "/Biohazard/BioDetailIndex?eo=2&&BioId=" + fid);
+        },
+        del: function (fid) {
+            $.messager.confirm('系统提示', '您确定要删除吗?', function (r) {
+                if (r) {
+                    $.ajax({
+                        async: false,
+                        type: "post",
+                        url: "/Biohazard/BioOp",
+                        data: { jsondata: JSON.stringify({ BioId:fid }), eo: 3 },
+                        success: function (result) {
+                            if (result.Code == -1) {
+                                $.messager.alert('提示', result.Msg);
+                            }
+                            else {
+                                Bioh.list();
+                            }
+                        }
+                    });
+                }
+            });
+        }
+    }
+
+    $(document).ready(function () {
+        $("#MuList").combobox({
+            onChange: function (n, o) {
+                $("#KeList").combobox('clear');
+                $("#ShuList").combobox('clear');
+                Bioh.initKeSelect();
+                Bioh.initShuSelect();
+            }
+        });
+        $("#KeList").combobox({
+            onChange: function (n, o) {
+                $("#ShuList").combobox('clear');
+                Bioh.initShuSelect();
+            }
+        });
+        
+        Bioh.initMuSelect();
+        Bioh.initKeSelect();
+        Bioh.initShuSelect();
+        Bioh.list();
+    });
+
+
+
+</script>

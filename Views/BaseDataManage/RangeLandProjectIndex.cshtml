@@ -1,0 +1,348 @@
+﻿@{
+    Layout = "~/Views/Shared/_MapLayout.cshtml";
+}
+@using GrassPlantInfo.GIS;
+@using GrassPlantInfo.GIS.Common;
+@using GrassPlantInfo.Service.GIS;
+@using GrassPlantInfo.Contract.DTO.GIS;
+@model GrassPlantInfo.Service.GIS.ProjectAreaService
+<style type="text/css">
+    .panel-button-left {
+        background: url(../map/images/layout_button_left.gif) no-repeat;
+        width: 16px;
+        height: 16px;
+        position: absolute;
+        z-index: 2;
+        top: 36px;
+        right: 10px;
+        margin-top: 4px;
+    }
+
+    .panel-button-right {
+        background: url(../map/images/layout_button_right.gif) no-repeat;
+        width: 16px;
+        height: 16px;
+        display: block;
+        position: absolute;
+        z-index: 2;
+        top: 36px;
+        right: 10px;
+        margin-top: 4px;
+    }
+
+    .panel-show {
+        display: block;
+    }
+
+    .panel-hide {
+        display: none;
+    }
+</style>
+<!--loading base map-->
+<script type="text/javascript">
+
+    var App = {
+        MapBase: null
+    };
+    require({ async: true }, ["../map/js/MapBase.js"],
+        function (mapbase) {
+            App.MapBase = mapbase.CreateNew();
+            App.MapBase.LoadBaseMap("@Model.BaseMap.BaseMap.ServiceAuth");
+        });
+</script>
+
+<!--loading rangeland project layers-->
+<script type="text/javascript">
+    require(["dijit/layout/TabContainer", "dijit/layout/ContentPane", "dojo/query", "esri/layers/FeatureLayer",
+             "esri/symbols/Font", "esri/symbols/TextSymbol", "esri/layers/LabelClass", "dojo/dom-attr", "dojo/dom-class", "dojo/domReady!"],
+        function (TabContainer, ContentPane, query, FeatureLayer, Font, TextSymbol, LabelClass, domAttr, domClass) {
+            var tc = new TabContainer({
+                style: "height: 100%; width: 100%;"
+            }, "tc");
+
+            var cp1 = new ContentPane({
+                title: "补播"
+            }, "ReSeeding");
+
+            tc.addChild(cp1);
+
+            var cp2 = new ContentPane({
+                title: "饲草"
+            }, "Forage");
+            tc.addChild(cp2);
+
+            var cp3 = new ContentPane({
+                title: "围栏"
+            }, "FenceGrazing");
+            tc.addChild(cp3);
+
+            tc.startup();
+
+            query(".projectArea").forEach(function (node) {
+                node.onclick = function () {
+                    if (node.checked) {
+                        var pLayer = new FeatureLayer(node.value, {
+                            mode: FeatureLayer.MODE_SNAPSHOT,
+                            id: node.id,
+                            outFields: ["*"]
+                        });
+
+                        var font = new Font("10pt", Font.STYLE_NOMAL, Font.VARIANT_NORMAL, Font.WEIGHT_NORMAL, "宋体");
+                        var labelSymbol = new TextSymbol();
+                        labelSymbol.setFont(font);
+                        var labeljson = {
+                            "labelExpressionInfo": { "value": "{" + domAttr.get(node, "labelField") + "}" },
+                            "minScale": 50000,
+                            "maxScale": 500
+                        };
+                        var labelClass = new LabelClass(labeljson);
+                        labelClass.symbol = labelSymbol;
+
+                        pLayer.setLabelingInfo([labelClass]);
+                        App.MapBase.Map.addLayer(pLayer);
+                    }
+                    else {
+                        try {
+                            var pLayer = App.MapBase.Map.getLayer(node.id);
+                            App.MapBase.Map.removeLayer(pLayer);
+                        } catch (e) {
+
+                        }
+                    }
+                };
+            });
+
+            query("input[name='allcheck']").forEach(function (node) {
+                node.onclick = function () {
+                    var cName = this.id.split("-")[1];
+                    var checkboxs = query("input[name='" + cName + "']");
+                    for (var i = 0; i < checkboxs.length; i += 1) {
+                        checkboxs[i].checked = this.checked;
+                        checkboxs[i].onclick();
+                    }
+                };
+            });
+        });
+
+        require(["dojo/query", "dojo/dom-class", "dojo/domReady!"], function (query, domClass) {
+            query("#panel-button").forEach(function (node) {
+                node.onclick = function () {
+                    if (domClass.contains(node, "panel-button-left")) {
+                        domClass.replace(node, "panel-button-right", "panel-button-left");
+                        domClass.replace("funcPanel", "panel-show", "panel-hide");
+                    }
+                    else if (domClass.contains(node, "panel-button-right")) {
+                        domClass.replace(node, "panel-button-left", "panel-button-right");
+                        domClass.replace("funcPanel", "panel-hide", "panel-show");
+                    }
+                };
+            });
+        });
+
+
+
+    function ConsLableClass() {
+        var labelClass = null;
+        require([
+       "esri/symbols/Font",
+       "esri/symbols/TextSymbol",
+       "esri/layers/LabelClass"
+        ], function (Font, TextSymbol, LabelClass) {
+            var font = new Font("10pt", Font.STYLE_NOMAL, Font.VARIANT_NORMAL, Font.WEIGHT_NORMAL, "宋体");
+            var labelSymbol = new TextSymbol();
+            labelSymbol.setFont(font);
+            var labeljson = {
+                "labelExpressionInfo": { "value": "{<%=strLabelField%>}" },
+                "minScale": 50000,
+                "maxScale": 500
+            };
+            labelClass = new LabelClass(labeljson);
+            labelClass.symbol = labelSymbol;
+        });
+        return labelClass;
+    }
+</script>
+
+@functions{
+    public class AdminArea
+    {
+        public string City { get; set; }
+        public string[] CountyList { get; set; }
+    }
+}
+@functions {
+    public ProjectAreaDto  FindElement(string year, string type,string admin)
+    {
+        return @Model.ProjectAreaList.Find(delegate(ProjectAreaDto p) { return p.Year.ToString().Trim() == year && p.Type.Trim() == type && p.County.Trim() == admin; });
+    }
+}
+@{
+    var reseedingAdminList = new List<AdminArea>();
+    reseedingAdminList.Add(new AdminArea() { City = "吴忠市", CountyList = new string[] { "盐池县", "同心县", "红寺堡区", "利通区" } });
+    reseedingAdminList.Add(new AdminArea() { City = "中卫市", CountyList = new string[] { "海原县", "沙坡头区", "中宁县" } });
+    reseedingAdminList.Add(new AdminArea() { City = "固原市", CountyList = new string[] { "原州区", "彭阳县", "德隆县", "西吉县" } });
+    reseedingAdminList.Add(new AdminArea() { City = "银川市", CountyList = new string[] { "兴庆区", "灵武市" } });
+    reseedingAdminList.Add(new AdminArea() { City = "石嘴山市", CountyList = new string[] { "平罗县" } });
+    var reseedingYearList = new string[] { "2005", "2006", "2007", "2008", "2009", "2010", "2011", "2012", "2013" };
+
+    var forageAdminList = new List<AdminArea>();
+    forageAdminList.Add(new AdminArea() { City = "吴忠市", CountyList = new string[] { "盐池县", "同心县", "红寺堡区" } });
+    forageAdminList.Add(new AdminArea() { City = "中卫市", CountyList = new string[] { "海原县", "沙坡头区", "中宁县" } });
+    forageAdminList.Add(new AdminArea() { City = "固原市", CountyList = new string[] { "原州区", "彭阳县" } });
+    var forageYearList = new string[] { "2011", "2012", "2013" };
+
+    var fenceAdminList = new List<AdminArea>();
+    fenceAdminList.Add(new AdminArea() { City = "吴忠市", CountyList = new string[] { "盐池县", "同心县", "红寺堡区" } });
+    fenceAdminList.Add(new AdminArea() { City = "中卫市", CountyList = new string[] { "海原县", "沙坡头区", "中宁县" } });
+    fenceAdminList.Add(new AdminArea() { City = "固原市", CountyList = new string[] { "原州区", "彭阳县" } });
+    fenceAdminList.Add(new AdminArea() { City = "银川市", CountyList = new string[] { "灵武市" } });
+    fenceAdminList.Add(new AdminArea() { City = "石嘴山市", CountyList = new string[] { "平罗县" } });
+    var fenceYearList = new string[] { "2003", "2004", "2005", "2006", "2007", "2008", "2009", "2010" };
+}
+
+<!--reseeding project-->
+<div id="ReSeeding">
+    <input type="checkbox" id="allcheck-Reseeding" name="allcheck" /><a onclick="App.MapBase.Dom.byId('allcheck-Reseeding').click()">全选</a>
+    <ul>
+        @foreach (var ReseedingLayer in @Model.ReseedingProjectLayerList)
+        {
+            <li><input class="projectArea" name="Reseeding" id="@ReseedingLayer.LayerName" labelfield="@ReseedingLayer.LabelField" type="checkbox" value="@ReseedingLayer.ServiceAuth" /><a onclick="App.MapBase.Dom.byId('@ReseedingLayer.LayerName').click()">@ReseedingLayer.LayerCnName</a></li>
+        }
+    </ul>
+
+    <table border="1">
+        <caption>各地区国家退牧还草工程补播改良项目区(面积：km<sup>2</sup> )</caption>
+        <thead>
+            <tr>
+                <th colspan="2">补播</th>
+                @foreach (var year in reseedingYearList)
+                {
+                    <th>@(year)年</th>
+                }
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var city in reseedingAdminList)
+            {
+                <tr><th rowspan="@city.CountyList.Length">@city.City</th>
+                    <th>@city.CountyList[0]</th>
+                    @foreach (var year in reseedingYearList)
+                    {
+                        <td>@(FindElement(year, "补播", city.CountyList[0]) != null ? String.Format("{0:F}",FindElement(year, "补播", city.CountyList[0]).Area) : "")</td>
+                    }
+                </tr>
+                for (int i = 1; i < city.CountyList.Length;i++ )
+                {
+                      <tr>
+                          <th>@city.CountyList[i]</th>
+                        @foreach (var year in reseedingYearList)
+                        {
+                            <td>@(FindElement(year, "补播", city.CountyList[i]) != null ? String.Format("{0:F}",FindElement(year, "补播", city.CountyList[i]).Area) : "")</td>
+                        }
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+</div>
+
+<!--forage project-->
+<div id="Forage">
+    <input type="checkbox" id="allcheck-Forage" name="allcheck" /><a onclick="App.MapBase.Dom.byId('allcheck-Forage').click()">全选</a>
+    <ul>
+        @foreach (var ForageLayer in @Model.ForageProjectLayerList)
+        {
+            <li><input class="projectArea" name="Forage" id="@ForageLayer.LayerName" labelfield="@ForageLayer.LabelField" type="checkbox" value="@ForageLayer.ServiceAuth" /><a onclick="App.MapBase.Dom.byId('@ForageLayer.LayerName').click()">@ForageLayer.LayerCnName</a></li>
+        }
+    </ul>
+
+    <table border="1">
+        <caption>国家退牧还草工程饲优质人工饲草地项目区(面积：km<sup>2</sup> )</caption>
+        <thead>
+            <tr>
+                <th colspan="2">饲草</th>
+                @foreach (var year in forageYearList)
+                {
+                    <th>@(year)年</th>
+                }
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var city in forageAdminList)
+            {
+                <tr>
+                    <th rowspan="@city.CountyList.Length">@city.City</th>
+                    <th>@city.CountyList[0]</th>
+                    @foreach (var year in forageYearList)
+                    {
+                        <td>@(FindElement(year, "饲草", city.CountyList[0]) != null ? String.Format("{0:F}", FindElement(year, "饲草", city.CountyList[0]).Area): "")</td>
+                    }
+                </tr>
+                for (int i = 1; i < city.CountyList.Length; i++)
+                {
+                    <tr>
+                        <th>@city.CountyList[i]</th>
+                        @foreach (var year in forageYearList)
+                        {
+                            <td>@(FindElement(year, "饲草", city.CountyList[i]) != null ? String.Format("{0:F}", FindElement(year, "饲草", city.CountyList[i]).Area) : "")</td>
+                        }
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+</div>
+
+<!--fence-grazing project-->
+<div id="FenceGrazing">
+    <input type="checkbox" id="allcheck-Fence" name="allcheck" /><a onclick="App.MapBase.Dom.byId('allcheck-Fence').click()">全选</a>
+    <ul>
+        @foreach (var FenceLayer in @Model.FenceProjectLayerList)
+        {
+            <li><input class="projectArea" name="Fence" id="@FenceLayer.LayerName" type="checkbox" labelfield="@FenceLayer.LabelField" value="@FenceLayer.ServiceAuth" /><a onclick="App.MapBase.Dom.byId('@FenceLayer.LayerName').click()">@FenceLayer.LayerCnName</a></li>
+        }
+    </ul>
+
+    <table border="1">
+        <caption>各地区国家退牧还草工程围栏项目区(面积：km<sup>2</sup> )</caption>
+        <thead>
+            <tr>
+                <th colspan="2">围栏</th>
+                @foreach (var year in fenceYearList)
+                {
+                    <th>@(year)年</th>
+                }
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var city in fenceAdminList)
+            {
+                <tr>
+                    <th rowspan="@city.CountyList.Length">@city.City</th>
+                    <th>@city.CountyList[0]</th>
+                    @foreach (var year in fenceYearList)
+                    {
+                        <td>@(FindElement(year, "围栏", city.CountyList[0]) != null ? String.Format("{0:F}",FindElement(year, "围栏", city.CountyList[0]).Area) : "")</td>
+                    }
+                </tr>
+                for (int i = 1; i < city.CountyList.Length; i++)
+                {
+                    <tr>
+                        <th>@city.CountyList[i]</th>
+                        @foreach (var year in fenceYearList)
+                        {
+                            <td>@(FindElement(year, "围栏", city.CountyList[i]) != null ? String.Format("{0:F}",FindElement(year, "围栏", city.CountyList[i]).Area) : "")</td>
+                        }
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+</div>
+
+<!--functioning panel-->
+<div id="funcPanel" class="funcPanel panel-show" style="width: 550px; height: 690px; position: absolute; z-index: 2; top: 20px; right: 10px; margin-top: 4px">
+    <div id="tc"></div>
+</div>
+
+<div id="panel-button" class="panel-button-right"></div>

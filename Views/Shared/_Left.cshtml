@@ -1,0 +1,42 @@
+﻿@using GrassPlantInfo.CommonTools
+@using GrassPlantInfo.Contract.DTO.Admin
+
+<div region="west" split="true" title="导航菜单" style="width:190px; height:300px" id="west">
+    <div id="nav" class="easyui-accordion" fit="true" style="height:300px" border="false">
+        @{
+            var user = Session[GlobolClass.LoginSessionName] as UserInfoDto;
+
+            if (user != null)
+            {
+                var functionList = user.RolesList[0].FunctionList;
+                var parentfuncList = functionList.Where(x => x.ParentID == 1).OrderBy(x=>x.OrderBy).ToList();
+
+                foreach (var parent in parentfuncList)
+                {
+
+                    <div title="@parent.FunctionName" icon="icon icon-sys" style="overflow:auto;">
+                        <ul>
+                    @{
+                    var childList = functionList.Where(x => x.ParentID == parent.FunctionID);
+                    foreach (var child in childList)
+                    {
+                        var url = "/" + child.ControllersName + "/" + child.ActionName;
+                        <li>
+                            <div>
+                                <a ref="@child.FunctionID" href="#" rel="@url">
+                                    <span class="icon  icon-nav">&nbsp;</span>
+                                    <span class="nav">@child.FunctionName</span>
+                                </a>
+                            </div>
+                        </li>
+                    }
+                     }
+                        </ul>
+                    </div>
+                }
+            }
+        }
+
+    </div>
+
+</div>

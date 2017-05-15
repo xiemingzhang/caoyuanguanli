@@ -1,0 +1,104 @@
+﻿@{
+
+    Layout = "~/Views/Shared/_ContentLayout.cshtml";
+}
+@using GrassPlantInfo.Contract.DTO.Admin
+@model UserInfoDto
+<script src="~/js/Easyui.verity.extend.js"></script>
+<form id="frmchangepwd">
+
+    <div style="margin-top:-10px; margin-left:-8px;">
+        <div id="titlebar" style="background: #f9f9f9; padding: 10px; ">
+            <b>当前位置：</b> 系统管理 > 密码修改
+        </div>
+    </div>
+    <div style="margin-top:-10px; margin-left:-8px;">
+        <div id="list" style="background: #f9f9f9; height:500px ">
+            @Html.HiddenFor(x => x.UserID)
+            <table width="30%" align="center" id="tb_content">
+                <tr>
+                    <td style="width:100px" align="right">用户名称：</td>
+                    <td style="width:200px">
+                        @Model.UserName
+                    </td>
+                </tr>
+                <tr>
+                    <td style="width:100px" align="right">登录名称：</td>
+                    <td style="width:200px">
+                        @Model.LoginName
+                    </td>
+                </tr>
+                <tr>
+                    <td style="width:100px" align="right">密码：</td>
+                    <td style="width:200px">
+                        @Html.Password("Pwd", "",
+                    new
+                    {
+                        @class = "easyui-validatebox textbox",
+                        @required = "true",
+                        @missingMessage = "密码不能为空",
+                        @style = "width:90%;height:22px",
+                        @maxlenth = 20
+                    })
+
+                    </td>
+                </tr>
+                <tr>
+                    <td style="width:100px" align="right">确认密码：</td>
+                    <td style="width:200px">
+
+                        @Html.Password("ConfirmPwd", "",
+                    new
+                    {
+                        @class = "easyui-validatebox textbox",
+                        @required = "true",
+                        @missingMessage = "确认密码不能为空",
+                        @style = "width:90%;height:22px",
+                        @maxlenth = 20,
+                        @data_require = "true",
+                        @validType = "equals['#Pwd']",
+                        @invalidMessage="两次输入密码不匹配"
+                    })
+                    </td>
+                </tr>
+                <tr>
+                    <td style="width:100px" colspan="2" align="center"><a href="javascript:updatepwd.submit()" class="easyui-linkbutton" iconcls="icon-save" plain="true">保存</a></td>
+
+                </tr>
+            </table>
+        </div>
+    </div>
+</form>
+
+        <script>
+            var updatepwd = {
+                submit: function () {
+                    if (this.check()) {
+                        $.ajax({
+                            type: "post",
+                            url: "/user/UpdatePassword",
+                            data: { UserID: $("#UserID").val(), Password: $.trim($("#Pwd").val()) },
+                            success: function (result) {
+                                if (result.Code == -1) {
+                                    $.messager.alert('提示', "更新密码失败");
+                                }
+                                else {
+                                    $.messager.alert('提示', "更新密码成功！");
+                                }
+                            }
+                        });
+                    }
+                },
+                check: function () {
+                    var bo = $("#frmchangepwd").form('validate');
+                    if (!bo)
+                    {
+                        $.messager.alert('提示', "页面信息验证失败！");
+                    }
+                    return bo;
+                },
+
+
+            }
+
+        </script>

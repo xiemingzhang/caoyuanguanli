@@ -1,0 +1,195 @@
+﻿@{
+    Layout = "~/Views/Shared/_ContentLayout.cshtml";
+    string isDisplaySet = "", isDisplayEdit = "", isDisplayAdd = "", isDisplayDel = "", isDisplayImport = "", isDisplayExport = "";
+    if (ViewData["btnDisplay"] != null)
+    {
+        isDisplayAdd = ((ControlButtonDto)ViewData["btnDisplay"]).AddDisplay ? "visible" : "hidden";
+        isDisplayEdit = ((ControlButtonDto)ViewData["btnDisplay"]).EditDisplay ? "visible" : "hidden";
+        isDisplayDel = ((ControlButtonDto)ViewData["btnDisplay"]).DelDisplay ? "visible" : "hidden";
+        isDisplayImport = ((ControlButtonDto)ViewData["btnDisplay"]).ImportDisplay ? "visible" : "hidden";
+        isDisplaySet = ((ControlButtonDto)ViewData["btnDisplay"]).SetDisplay ? "visible" : "hidden";
+        isDisplayExport = ((ControlButtonDto)ViewData["btnDisplay"]).ExportDisplay ? "visible" : "hidden";
+    }
+}
+@using GrassPlantInfo.Contract.DTO.Admin;
+<div style="margin-top:-10px; margin-left:-8px;">
+    <div id="titlebar" style="background: #f9f9f9; padding: 10px; ">
+        <b>当前位置：</b> 草原管理系统 > 土壤类型管理 > 土壤数据
+    </div>
+</div>
+<div style="margin-top:-10px; margin-left:-8px;">
+    <div id="toolbar" style="background: #f9f9f9; padding: 10px; height:20px; ">
+        样地名称： <input class="textbox" style="height:18px; width:10%;" id="SamplePlotName" value="" />
+        年份： <input class="textbox" style="height:18px; width:10%;" id="Year" value="" />
+        <a href="javascript:soil.list()" id="Search" class="easyui-linkbutton" plain="true" iconcls="icon-search">查询</a>
+        <a href="javascript:soil.add()" id="add" style="visibility:@isDisplayAdd" class="easyui-linkbutton" plain="true" iconcls="icon-add">新增</a>
+        <a href="#" id="uploader" style="visibility:@isDisplayImport" class="easyui-linkbutton" plain="true" iconcls="icon-add">批量导入</a>
+    </div>
+    <div id="list">
+
+    </div>
+    <div id="w">
+    </div>
+</div>
+<script src="~/js/jquery-plugin/fineuploader-3.7.1/jquery.fineuploader-3.7.1.min.js"></script>
+<script>
+
+    var initUploader = function () {
+
+        $('#uploader').find(".l-btn-text").fineUploader({
+            request: { endpoint: '/BaseDataManage/PostFile?name=T_GrassSample' },
+            text: { uploadButton: '批量导入' },
+            autoUpload: true
+        }).on('upload', function (id, name) {
+            $.messager.progress({ title: '请稍等', msg: '正在上传...', interval: 0 });
+        }).on('complete', function (event, id, name, response) {
+            $.messager.progress('close');
+            if (response.success) {
+                $.messager.alert('提示', response.message);
+                location.reload();
+            } else {
+                $.messager.alert('提示', response.message);
+            }
+        }).on('progress', function (target, id, name, loaded, total) {
+            $.messager.progress('bar').progressbar('setValue', Math.ceil(loaded * 100 / total));
+            if (loaded >= total) {
+                $.messager.progress('close');
+                $.messager.progress({ title: '请稍等', msg: '上传完成，正在导入处理...', interval: 300, text: '' });
+            }
+        }).on('error', function (target, id, name, reason, maybeXhrOrXdr) {
+        });
+        $("#uploader").css("overflow", "hidden");
+        $(".qq-upload-button").css("overflow", "");
+        $(".qq-drop-processing,.qq-upload-list").hide();
+    };
+    setTimeout(initUploader, 500);
+
+    /*****************************************************************************************************************************/
+    var soil = {
+        getparam: function () {
+            var data = {
+                Year: $.trim($("#Year").val()),
+                SamplePlotName: $.trim($("#SamplePlotName").val())
+            }
+            return data;
+        },
+        list: function () {
+            $('#list').datagrid({
+                fit: false,
+                url: '/Soil/SoilSampleList',
+                method: 'POST',
+                loadMsg: "加载中,请耐心等待",
+                queryParams: this.getparam(),
+                striped: true,
+                fitColumns: true,
+                singleSelect: true,
+                rownumbers: true,
+                pagination: true,
+                nowrap: false,
+                pageSize: 15,
+                pageList: [10, 15, 30, 50],
+                showFooter: true,
+                columns: [[
+                    { field: 'Id', hidden:true },
+                    { field: 'SamplePlotName', title: '地点', width: 80, align: 'center' },
+                    { field: 'Year', title: '年份', width: 40, align: 'center' },
+                    { field: 'Longitude', title: '东经', width: 40, align: 'center' },
+                    { field: 'Latitude', title: '北纬', width: 40, align: 'center' },
+                    { field: 'Altitude', title: '海拔(米)', width: 40, align: 'center' },
+                    { field: 'Soc20', title: 'SOC（0-20cm)g/kg', width: 50, align: 'center' },
+                    { field: 'Soc40', title: 'SOC（20-40cm)g/kg', width: 50, align: 'center' },
+                    { field: 'Ph20', title: 'PH(0-20cm)', width: 80, align: 'center' },
+                    { field: 'Ph40', title: 'PH(20-40cm)', width: 80, align: 'center' },
+                    { field: 'An20', title: 'AN(0-20cm)g/kg', width: 80, align: 'center' },
+                    { field: 'An40', title: 'AN(20-40cm)g/kg', width: 80, align: 'center' },
+                    { field: 'Ap20', title: 'AP(0-20cm)g/kg', width: 70, align: 'center' },
+                    { field: 'Ap40', title: 'AP(20-40cm)g/kg', width: 80, align: 'center' },
+                    { field: 'Ak20', title: 'AK(0-20cm)g/kg', width: 50, align: 'center' },
+                    { field: 'Ak40', title: 'AK(20-40cm)g/kg', width: 50, align: 'center' },
+                    { field: 'Moisture', title: '风干土含水率（0-20cm)', width: 50, align: 'center' },
+                    { field: 'Moisture40', title: '风干土含水率（20-40cm)', width: 50, align: 'center' }@*,
+                    {
+                        field: 'cz', title: '操作', width: 100, align: 'center',
+                        formatter: function (val, rec) {
+                            var html = "<a class='easyui-linkbutton btnShow' plain='true' href='javascript:grass.detail(" + rec.Id + ");' title='查看详情' ></a>&nbsp;&nbsp;&nbsp;";
+                            html += "<a class='easyui-linkbutton btnEdit' plain='true' style='visibility:@isDisplayEdit'   href='javascript:grass.edit(" + rec.Id + ");' title='编辑'></a>&nbsp;&nbsp;&nbsp;";
+                            html += "<a class='easyui-linkbutton btnDelete' plain='true' style='visibility:@isDisplayDel'  href='javascript:grass.del(" + rec.Id + ");' title='删除'></a>";
+                            return html;
+                        }
+                    }*@
+                ]], onLoadSuccess: function () {
+                    $(".btnShow").linkbutton({
+                        iconCls: "icon-show"
+                    });
+                    $(".btnEdit").linkbutton({
+                        iconCls: "icon-edit"
+                    });
+                    $(".btnDelete").linkbutton({
+                        iconCls: "icon-delete"
+                    });
+                }
+            });
+            $("#list").datagrid("getPager").pagination({
+                beforePageText: '第',
+                afterPageText: '页    共 {pages} 页',
+                pageList: [10, 15, 30, 50],
+                displayMsg: "显示 {from} 到 {to} 条记录 ,  共 {total} 条记录"
+            });
+        },
+        add: function () {
+            $('#w').window({
+                width: 450,
+                height: 460,
+                modal: false,
+                href: "/Soil/SoilSampleManageIndex?eo=1",
+                title: "添加土壤数据"
+            });
+        },
+        detail: function (fid) {
+            $('#w').window({
+                width: 450,
+                height: 460,
+                modal: true,
+                href: "/BaseDataManage/GrassSampleManageIndex?eo=4&&ID=" + fid,
+                title: "查看土壤信息"
+            });
+        },
+        edit: function (fid) {
+            $('#w').window({
+                width: 450,
+                height: 460,
+                modal: true,
+                href: "/BaseDataManage/GrassSampleManageIndex?eo=2&&ID=" + fid,
+                title: "编辑土壤数据"
+            });
+        },
+        del: function (fid) {
+            $.messager.confirm('系统提示', '您确定要删除吗?', function (r) {
+                if (r) {
+                    $.ajax({
+                        async: false,
+                        type: "post",
+                        url: "/BaseDataManage/GrassManageOP",
+                        data: { ID: fid, eo: 3 },
+                        success: function (result) {
+                            if (result.Code == -1) {
+                                $.messager.alert('提示', result.Msg);
+                            }
+                            else {
+                                $.messager.alert('提示', "删除成功。");
+                                grass.list();
+                            }
+                        }
+                    });
+                }
+            });
+        }
+    }
+
+    $(document).ready(function () {
+        soil.list();
+    });
+
+
+
+</script>

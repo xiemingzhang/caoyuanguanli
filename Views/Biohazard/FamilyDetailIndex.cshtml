@@ -1,0 +1,105 @@
+﻿@{
+
+    Layout = null;
+}
+@using GrassPlantInfo.Contract.DTO.Admin;
+@using GrassPlantInfo.Contract.Enum;
+@model FamilyDto
+@{
+    var t = (EnumOperation)ViewBag.Type;
+    bool isDetail = (t == EnumOperation.DETAIL)?true:false;
+}
+
+@Html.Hidden("Type",(int)t)
+@Html.HiddenFor(x => x.FamilyId)
+
+<table width="100%" align="center" id="tb_content">   
+    <tr>
+        <td style="width:100px" align="right"> 科名称：</td>
+        <td style="width:200px">
+            @{
+                if (!isDetail)
+                {
+                    @Html.TextBoxFor(x => x.FamilyName, new { @class = "easyui-validatebox textbox", @required = "true", @missingMessage = "植被科目名称", @style = "width:70%;height:22px", @maxlenth = 30, @data_require = "true" })
+                }
+                else
+                {
+                    @Html.Label(Model.FamilyName)
+                }
+            }
+
+        </td>
+    </tr>
+    @{
+
+        if (!isDetail)
+        {
+            <tr>
+                <td style="width:100px" colspan="2" align="center"><a href="javascript:familyOp.submit()" class="easyui-linkbutton" iconcls="icon-save" plain="true">保存</a></td>
+            </tr>
+        }
+    }
+</table>
+
+<script>
+    var familyOp = {
+        pageType: $("#Type").val(),
+        getparam: function (t) {
+            var data = {
+                FamilyName: $.trim($("#FamilyName").val()),
+                FamilyID: $("#FamilyID").val(),
+                eo:this.pageType
+            }
+            return data;
+        },
+        check: function () {
+            var bo = true;
+            var inputlist = $("#tb_content input[type='text']");
+            if( $.trim($("#FamilyName").val()).length == 0)
+            {
+                $.messager.alert('提示',  "科名不能为空！");
+                bo = false;
+                return false;
+            }
+            if (bo) {
+                $.ajax({
+                    async: false,
+                    type: "post",
+                    url: "/Biohazard/ValidateFamilyName",
+                    data: { FamilyName: $.trim($("#FamilyName").val()), FamilyID: $("#FamilyID").val(), eo: this.pageType },
+                    success: function (result) {
+                        if (result.Code == -1) {
+                            $.messager.alert('提示', result.Msg);
+                            bo = false;
+                            return false;
+                        }
+                    }
+                });
+            }
+            return bo;
+            
+        },
+        submit: function (t) {
+           
+            if (this.check())
+            {
+
+                $.ajax({
+                    async: false,
+                    type: "post",
+                    url: "/Biohazard/FamilyOp",
+                    data:  this.getparam(),
+                    success: function (result) {
+                        if (result.Code == -1) {
+                            $.messager.alert('提示', result.Msg);
+                            return false;
+                        }
+                        else {
+                            location.reload();
+                        }
+                    }
+                });
+            }
+        }
+    }
+</script>

@@ -1,0 +1,124 @@
+﻿@{
+    Layout = "~/Views/Shared/_MapLayout.cshtml";
+}
+
+@using GrassPlantInfo.GIS;
+@using GrassPlantInfo.GIS.Common;
+@using GrassPlantInfo.Service.GIS;
+@model GrassPlantInfo.Service.GIS.MonitorSiteService
+
+<!---->
+<script type="text/javascript">
+    var g_oInfoTemplate = null;
+    var App = {
+        MapBase: null,
+        InfoWindowUrl:"/BaseDataManage/GetSamplotDetail"
+    };
+</script>
+
+<!--Load BaseMap and monitor layer-->
+<script type="text/javascript">
+    require({ async: true },["../map/js/MapBase.js","dojo/query", "esri/layers/FeatureLayer", "esri/InfoTemplate", "esri/dijit/Search", "esri/symbols/Font", "esri/symbols/TextSymbol",
+              "esri/layers/LabelClass", "dojo/dom-attr"],
+        function (mapbase, query, FeatureLayer, InfoTemplate, Search, Font, TextSymbol, LabelClass, domAttr) {
+
+            App.MapBase = mapbase.CreateNew();
+            App.MapBase.LoadBaseMap("@Model.BaseMap.BaseMap.ServiceAuth");
+
+
+            App.MapBase.domConstruct.place("<div id='search'></div>", document.body);
+
+            query(".monitorSite").forEach(function (node) {
+                node.onclick = function () {
+                    if (node.checked) {
+                        var pLayer = new FeatureLayer(node.value, {
+                            mode: FeatureLayer.MODE_SNAPSHOT,
+                            id: node.id,
+                            outFields: ["*"]
+                        });
+
+                        //label
+                        var font = new Font("10pt", Font.STYLE_NOMAL, Font.VARIANT_NORMAL, Font.WEIGHT_NORMAL, "宋体");
+                        var labelSymbol = new TextSymbol();
+                        labelSymbol.setFont(font);
+                        var labeljson = {
+                            "labelExpressionInfo": { "value": "{" + domAttr.get(node, "labelField") + "}" },
+                            "minScale": 600000,
+                            "maxScale": 500
+                        };
+                        var labelClass = new LabelClass(labeljson);
+                        labelClass.symbol = labelSymbol;
+
+                        pLayer.setLabelingInfo([labelClass]);
+
+                        //instantiate a clsInfoTemplate object
+                        var infocontent = "<iframe width='98%' height='98%' src='" + App.InfoWindowUrl + "?Id=${SPlotID}" + "'></iframe>";
+
+                        //g_oInfoTemplate = new clsInfoTemplate.createNew(oMonitorLayer.oInfoTemplate);
+                        g_oInfoTemplate = new InfoTemplate("信息", infocontent);
+
+                        //pLayer.setInfoTemplate(g_oInfoTemplate);
+                        App.MapBase.SetToolbarInfoTemplate(pLayer, g_oInfoTemplate);
+
+                        App.MapBase.Map.addLayer(pLayer);
+                        App.MapBase.Map.infoWindow.resize(400, 300);
+
+                      
+                        var oSearch = new Search({
+                            sources: [{
+                                featureLayer: pLayer,
+                                outFields: ["SPlotName", "SPlotID", "TGFWeight"],
+                                displayField: "SPlotName",
+                                suggestionTemplate: "${SPlotName}",
+                                name: "query",
+                                searchFields: ["SPlotName", "SPlotID", "TGFWeight"],
+                                placeholder: "例如: 样地名称",
+                                enableSuggestions: true
+                            }],
+                            map: App.MapBase.Map,
+                            enableButtonMode: true,
+                            zoomScale: 8000,
+                            enableInfoWindow: true
+                        }, "search");
+                        oSearch.startup();
+
+                        oSearch.on("search-results", function (evt) {
+                            pLayer.setInfoTemplate(null);
+                        });
+
+                    }
+                    else {
+                        try {
+                            var pLayer = App.MapBase.Map.getLayer(node.id);
+                            App.MapBase.Map.removeLayer(pLayer);
+                        } catch (e) {
+
+                        }
+                    }
+                };
+            });
+        });
+</script>
+
+<!--functioning panel-->
+<div id="funcPanel" class="funcPanel" style="width:200px;padding-top:20px">
+    <ul>
+        @foreach (var MonitorSite in @Model.MonitorSiteLayerList)
+        {
+            <li><input class="monitorSite" name="MonitorSite" id="@MonitorSite.LayerName" type="checkbox" labelfield="@MonitorSite.LabelField" value="@MonitorSite.ServiceAuth" /><a onclick="App.MapBase.Dom.byId('@MonitorSite.LayerName').click()">@MonitorSite.LayerCnName</a></li>
+        }
+    </ul>
+
+    <table border="1">
+        <caption>草原调查各区县监测点分布数量(个)</caption>
+        <thead>
+            <tr><th>所属县</th><th>2016年</th></tr>
+        </thead>
+        <tbody>
+            @foreach(var r in @Model.MonitorSiteNumberList)
+            {
+                <tr><td>@r.County</td><td>@r.Number</td></tr>
+            }
+        </tbody>
+    </table>
+</div>

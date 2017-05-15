@@ -1,0 +1,145 @@
+﻿@{
+    Layout = "~/Views/Shared/_ContentLayout.cshtml";
+    string isDisplaySet = "", isDisplayEdit = "", isDisplayAdd = "", isDisplayDel = "", isDisplayImport = "", isDisplayExport = "";
+    if (ViewData["btnDisplay"] != null)
+    {
+        isDisplayAdd = ((ControlButtonDto)ViewData["btnDisplay"]).AddDisplay  ? "visible" : "hidden";
+        isDisplayEdit = ((ControlButtonDto)ViewData["btnDisplay"]).EditDisplay  ? "visible" : "hidden";
+        isDisplayDel = ((ControlButtonDto)ViewData["btnDisplay"]).DelDisplay  ? "visible" : "hidden";
+        isDisplayImport = ((ControlButtonDto)ViewData["btnDisplay"]).ImportDisplay  ? "visible" : "hidden";
+        isDisplaySet = ((ControlButtonDto)ViewData["btnDisplay"]).SetDisplay  ? "visible" : "hidden";
+        isDisplayExport = ((ControlButtonDto)ViewData["btnDisplay"]).ExportDisplay  ? "visible" : "hidden";
+    }
+}
+@using GrassPlantInfo.Contract.DTO.Admin;
+
+<style>
+    .datagrid-row {
+        height: 32px;
+    }
+</style>
+
+<div style="margin-top:-10px; margin-left:-8px;">
+    <div id="titlebar" style="background: #f9f9f9; padding: 10px; ">
+        <b>当前位置：</b> 草原管理系统 > 生物灾害 > 生物目管理
+    </div>
+</div>
+<div style="margin-top:-10px; margin-left:-8px;">
+    <div id="toolbar" style="background: #f9f9f9; padding: 10px; height:20px; ">
+        目名： <input class="textbox" style="height:18px; width:10%;" id="Name" value="" />
+        <a href="javascript:order.list()" id="Search" class="easyui-linkbutton" plain="true" iconcls="icon-search">查询</a>
+    </div>
+    <div id="list">
+
+    </div>
+    <div id="w">
+    </div>
+</div>
+<script>
+    var order = {
+        getparam: function () {
+            var data = {
+                Name: $.trim($("#Name").val())
+            }
+            return data;
+        },
+        list: function () {
+            $('#list').datagrid({
+                fit: false,
+                url: '/Biohazard/OrderList',
+                method: 'POST',
+                loadMsg: "加载中,请耐心等待",
+                queryParams: this.getparam(),
+                striped: true,
+                fitColumns: true,
+                singleSelect: true,
+                rownumbers: true,
+                pagination: true,
+                nowrap: false,
+                pageSize: 15,
+                pageList: [10, 15, 30, 50],
+                showFooter: true,
+                columns: [[
+                    { field: 'OrderId', title: '目ID', width: 50, align: 'center' },
+                    { field: 'OrderName', title: '目名', width: 50, align: 'center' },
+                    {
+                        field: 'cz', title: '操作', width: 100, align: 'center',
+                        formatter: function (val, rec) {
+                            var html = "<a class='easyui-linkbutton btnShow' plain='true' href='javascript:order.detail(" + rec.OrderId + ");' title='查看详情' ></a>&nbsp;&nbsp;&nbsp;";
+                            html += "<a class='easyui-linkbutton btnEdit' plain='true' style='visibility:@isDisplayEdit'  href='javascript:order.edit(" + rec.OrderId + ");' title='编辑'></a>&nbsp;&nbsp;&nbsp;";
+                            html += "<a class='easyui-linkbutton btnDelete' plain='true' style='visibility:@isDisplayDel' href='javascript:order.del(" + rec.OrderId + ");' title='删除'></a>";
+                            return html;
+                        }
+                    }
+                ]], onLoadSuccess: function () {
+                    $(".btnShow").linkbutton({
+                        iconCls: "icon-show"
+                    });
+                    $(".btnEdit").linkbutton({
+                        iconCls: "icon-edit"
+                    });
+                    $(".btnDelete").linkbutton({
+                        iconCls: "icon-delete"
+                    });
+                }
+            });
+            $("#list").datagrid("getPager").pagination({
+                beforePageText: '第',
+                afterPageText: '页    共 {pages} 页',
+                pageList: [10, 15, 30, 50],
+                displayMsg: "显示 {from} 到 {to} 条记录 ,  共 {total} 条记录"
+            });
+        },
+        add: function () {
+            $('#w').window({
+                width: 600,
+                height: 550,
+                modal: true,
+                href: "/Biohazard/OrderDetailIndex?eo=1",
+                title: "添加目"
+            });
+        },
+        detail: function (fid) {
+            $('#w').window({
+                width: 450,
+                height: 320,
+                modal: true,
+                href: "/Biohazard/OrderDetailIndex?eo=4&&OrderID=" + fid,
+                title: "查看目信息"
+            });
+        },
+        edit: function (fid) {
+            $('#w').window({
+                width: 450,
+                height: 320,
+                modal: true,
+                href: "/Biohazard/OrderDetailIndex?eo=2&&OrderID=" + fid,
+                title: "编辑目信息"
+            });
+        },
+        del: function (fid) {
+            $.messager.confirm('系统提示', '您确定要删除吗?', function (r) {
+                if (r) {
+                    $.ajax({
+                        async: false,
+                        type: "post",
+                        url: "/Biohazard/OrderOp",
+                        data: { OrderID: fid, eo: 3 },
+                        success: function (result) {
+                            if (result.Code == -1) {
+                                $.messager.alert('提示', result.Msg);
+                            }
+                            else {
+                                order.list();
+                            }
+                        }
+                    });
+                }
+            });
+        }
+    }
+
+    $(document).ready(function () {
+        order.list();
+    });
+</script>

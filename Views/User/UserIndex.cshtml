@@ -1,0 +1,139 @@
+﻿@{
+    Layout = "~/Views/Shared/_ContentLayout.cshtml";
+    string isDisplaySet = ""
+        , isDisplayEdit = ""
+        , isDisplayAdd = ""
+        , isDisplayDel = ""
+        , isDisplayImport="";
+}
+
+<div style="margin-top:-10px; margin-left:-8px;">
+    <div id="titlebar" style="background: #f9f9f9; padding: 10px; ">
+        <b>当前位置：</b> 系统管理 > 用户管理
+    </div>
+</div>
+<div style="margin-top:-10px; margin-left:-8px;">
+    <div id="toolbar" style="background: #f9f9f9; padding: 10px; height:20px; ">
+        用户名： <input class="textbox" style="height:18px; width:10%;" id="UserName" value="" />
+        登录名： <input class="textbox" style="height:18px; width:10%;" id="LoginName" value="" />
+        <a href="javascript:usermgt.list()" id="Search" class="easyui-linkbutton" plain="true" iconcls="icon-search">查询</a>
+        <a href="javascript:usermgt.add()" id="add" style='display:@isDisplayAdd' class="easyui-linkbutton" plain="true" iconcls="icon-add">新增</a>
+    </div>
+    <div id="list"> </div>
+    <div id="w"></div>
+</div>
+<script type="text/html" id="setbuttoncan">
+    <div>
+        <input type="text" />
+    </div>
+</script>
+<script>
+
+
+    var usermgt = {
+        getparam: function () {
+            var data = {
+                UserName: $.trim($("#UserName").val()),
+                LoginName: $.trim($("#LoginName").val())
+            }
+            return data;
+        },
+        list: function () {
+            $('#list').datagrid({
+                fit: false,
+                url: '/User/UserList',
+                method: 'POST',
+                loadMsg: "加载中,请耐心等待",
+                queryParams: this.getparam(),
+                striped: true,
+                fitColumns: true,
+                singleSelect: true,
+                rownumbers: true,
+                pagination: true,
+                nowrap: false,
+                pageSize: 15,
+                pageList: [10, 15, 30, 50],
+                showFooter: true,
+                columns: [[
+                    { field: 'UserID', title: '用户ID', width: 50, align: 'center' },
+                    { field: 'UserName', title: '用户名', width: 50, align: 'center' },
+                    { field: 'LoginName', title: '登录名', width: 80, align: 'center' },
+                    { field: 'Statustxt', title: '状态', width: 50, align: 'center' },
+                    { field: 'RoleName', title: '角色', width: 50, align: 'center' },
+                    { field: 'CreateTimetxt', title: '创建日期', width: 80, align: 'center' },
+                    {
+                        field: 'cz', title: '操作', width: 100, align: 'center',
+                        formatter: function (val, rec) {
+                            var html = "<a class='easyui-linkbutton' plain='true' style='display:@isDisplaySet' iconcls='icon-edit'  href='javascript:usermgt.setcontrol(" + rec.UserID + ");'>设置管辖地域</a>&nbsp;&nbsp;&nbsp;";
+                            html += "<a class='easyui-linkbutton' plain='true' style='display:@isDisplayEdit' iconcls='icon-edit'  href='javascript:usermgt.edit(" + rec.UserID + ");'>编辑</a>&nbsp;&nbsp;&nbsp;";
+                            html += "<a class='easyui-linkbutton' plain='true' style='display:@isDisplayDel' iconcls='icon-delete' href='javascript:usermgt.del(" + rec.UserID + ");'>删除</a>";
+                            return html;
+                        }
+                    }
+                ]],
+            });
+            $("#list").datagrid("getPager").pagination({
+                beforePageText: '第',
+                afterPageText: '页    共 {pages} 页',
+                pageList: [10, 15, 30, 50],
+                displayMsg: "显示 {from} 到 {to} 条记录 ,  共 {total} 条记录"
+            });
+        },
+        add: function () {
+            $('#w').window({
+                width: 450,
+                height: 320,
+                modal: true,
+                href: "/user/UserOpIndex?eo=1",
+                title: "添加用户"
+            });
+        },
+        edit: function (id) {
+            $('#w').window({
+                width: 450,
+                height: 320,
+                modal: true,
+                href: "/user/UserOpIndex?eo=2&&UserID=" + id,
+                title: "编辑用户"
+            });
+        },
+        del: function (fid) {
+            $.messager.confirm('系统提示', '您确定要删除吗?', function (r) {
+                if (r) {
+                    $.ajax({
+                        async: false,
+                        type: "post",
+                        url: "/user/UserOp",
+                        data: { UserID: fid, eo: 3 },
+                        success: function (result) {
+                            if (result.Code == -1) {
+                                $.messager.alert('提示', result.Msg);
+                            }
+                            else {
+                                usermgt.list();
+                            }
+                        }
+                    });
+                }
+            });
+        },
+        // 设置
+        setcontrol: function (id) {
+            $('#w').window({
+                width: 450,
+                height: 320,
+                collapsible: false,
+                minimizable: false,
+                modal: true,
+                href: "/user/UserSetIndex?UserID=" + id,
+                title: "设置管辖地域"
+            });
+        }
+    }
+
+    $(document).ready(function () {
+        usermgt.list();
+    });
+
+
+</script>

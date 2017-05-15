@@ -1,0 +1,194 @@
+﻿@using GrassPlantInfo.Entity
+@{
+    ViewBag.Title = "GrassType"; //草原类型及面积
+    T_GrassCountyStatistics entity = ViewBag.model;
+    int id = entity.StatisticsId ?? 0;
+    Layout = null;
+}
+<table id="GT" class="easyui-datagrid" title="草原类型及面积操作表" url="/Grass/GetPrairieType/@id" method="post" style="width:720px;height:auto"
+       data-options="
+                iconCls: 'icon-edit',
+                singleSelect: true,
+                toolbar: '#gtb',
+                fitColumns: true,
+                rownumbers: true,
+                onClickCell: onClickCell1,
+                onEndEdit: onEndEdit1
+            ">
+    <thead>
+        <tr>
+            <th field="Id" hidden="true">Id</th>
+            <th data-options="field:'Pid',align:'left',width:120,
+                         formatter:function(value,row){
+                            return GetTypeName(row.Pid);
+                        },
+                        editor:{
+                            type:'combobox',
+                            options:{
+                                valueField:'Id',
+                                textField:'Name',
+                                data:[{Id: 4,Name: '温性草原类'},{Id: 5,Name: '高寒草原类'}]
+                }
+                }">一级类型</th>
+            <th data-options="field:'EnumId',align:'left',width:120,
+                        formatter:function(value,row){
+                            return GetTypeName(row.EnumId);
+                        },
+                        editor:{
+                            type:'combobox',
+                            options:{
+                                valueField:'Id',
+                                textField:'Name',
+                                data:[{Id: 6,Name: '温性草甸草原类',pid: 4},{Id: 7,Name: '温性草原类',pid: 4},{Id: 8,Name: '温性荒漠草原类',pid: 4},{Id: 9,Name: '高寒草甸草原类',pid: 5},{Id: 10,Name: '高寒草原类',pid: 5}]
+                }
+                }">二级类型</th>
+            <th data-options="field:'Area',width:140,align:'left',editor:'textbox'">面积</th>
+        </tr>
+    </thead>
+</table>
+<input type="hidden" id="grasstypearea" name="grasstypearea" />
+<div id="gtb" style="height:auto">
+    <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-add',plain:true" onclick="append1()">添加</a>
+    <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-remove',plain:true" onclick="removeit1()">删除</a>
+    <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-save',plain:true" onclick="accept1()">保存</a>
+    <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-undo',plain:true" onclick="reject1()">撤销</a>
+    <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-search',plain:true" onclick="getChanges1()">获取更改行</a>
+</div>
+<script type="text/javascript">   
+    var editIndex1 = undefined;
+    function endEditing1() {
+        if (editIndex1 == undefined) { return true }
+        $('#GT').datagrid('endEdit', editIndex1);
+        editIndex1 = undefined;
+        return true;
+    }
+    function onClickCell1(index, field) {
+        if (editIndex1 != index) {
+            if (endEditing1()) {
+                $('#GT').datagrid('selectRow', index)
+                        .datagrid('beginEdit', index);
+                var ed = $('#GT').datagrid('getEditor', { index: index, field: field });
+                if (ed) {
+                    ($(ed.target).data('textbox') ? $(ed.target).textbox('textbox') : $(ed.target)).focus();
+                    //($(ed.target).data('combobox') ? $(ed.target).combobox('textbox') : $(ed.target)).focus();
+                }
+                editIndex1 = index;
+            } else {
+                setTimeout(function () {
+                    $('#GT').datagrid('selectRow', editIndex1);
+                }, 0);
+            }
+        }
+    }
+    function onEndEdit1(index, row) {
+        var ed = $(this).datagrid('getEditor', {
+            index: index,
+            field: 'EnumId'
+        });
+        $(ed.target).focus();
+        row.Name = $(ed.target).combobox('getText');
+        if (isNaN($(ed.target).combobox('getValue')))
+        { }
+        else
+        { row.EnumId = $(ed.target).combobox('getValue'); }
+    }
+    function append1() {
+        var index = $('#GT').datagrid('getRowIndex', $('#GT').datagrid('getSelected'));
+        if (index == -1)
+            index = 0;
+        $("#GT").datagrid("insertRow", {
+            index: index + 1,
+            row: { oper: "<a href='javascript:append()'>+<a> <a href='javascript:removeit()'>-<a>", status: 'P' }
+        });
+    }
+    function removeit1() {
+        $.messager.confirm('系统提示', '您确定要删除吗?', function (r) {
+            if (r) {
+                if (editIndex1 == undefined) { return }
+                $('#GT').datagrid('selectRow', editIndex1);
+                var rows = $('#GT').datagrid('getRows');
+                var row = rows[editIndex1];
+                if (row.Id != undefined) {
+                    $.ajax({
+                        async: false,
+                        type: "post",
+                        url: "/Grass/DeleteGrassType",
+                        data: { Id: row.Id },
+                        success: function (result) {
+                            $('#GT').datagrid('reload');//刷新
+                        }
+                    });
+                }
+                $('#GT').datagrid('cancelEdit', editIndex1)
+                   .datagrid('deleteRow', editIndex1);
+                editIndex1 = undefined;
+            }
+        });
+    }
+    function accept1() {
+        if (endEditing1()) {
+            var $GT = $('#GT');
+            var allstring = "";
+            var allarray = new Array();
+            $("#grasstypearea").val("");
+            var rows = $GT.datagrid('getChanges');
+            if (rows.length) {
+                var inserted = $GT.datagrid('getChanges', "inserted");
+                var deleted = $GT.datagrid('getChanges', "deleted");
+                var updated = $GT.datagrid('getChanges', "updated");
+                var insertstring = "";
+                var effectRow = new Object();
+                if (inserted.length) {
+                    effectRow["inserted"] = JSON.stringify(inserted);
+                    for (var i = 0; i < inserted.length; i++) {
+                        allarray.push("," + inserted[i].EnumId + "," + inserted[i].Area);
+                    }
+                }
+                if (deleted.length) {
+                    effectRow["deleted"] = JSON.stringify(deleted);
+                }
+                if (updated.length) {
+                    effectRow["updated"] = JSON.stringify(updated);
+                    for (var i = 0; i < updated.length; i++) {
+                        allarray.push(updated[i].Id + "," + updated[i].EnumId + "," + updated[i].Area);
+                    }
+                }
+                allstring = allarray.join(";");
+                $("#grasstypearea").val(allstring);
+            }
+        }
+    }
+
+    //获取草原类型名称
+    function GetTypeName(id) {
+        var result = "";
+        $.ajax({
+            async: false,
+            type: "post",
+            url: "/Grass/GetTypeName",
+            data: { Id: id },
+            success: function (data) {
+                result = data;
+            }
+        });
+        return result;
+    }
+    function reject1() {
+        $('#GT').datagrid('rejectChanges');
+        editIndex1 = undefined;
+    }
+    function getChanges1() {
+        var rows = $('#GT').datagrid('getChanges');
+        alert(rows.length + ' rows are changed!');
+    }
+
+    function contains(arr, obj) {
+        var i = arr.length;
+        while (i--) {
+            if (arr[i] === obj) {
+                return true;
+            }
+        }
+        return false;
+    }
+</script>

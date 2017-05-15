@@ -1,0 +1,247 @@
+﻿@{
+
+    Layout = null;
+}
+@using GrassPlantInfo.Contract.DTO.Admin;
+@using GrassPlantInfo.Contract.Enum;
+@model UserInfoDto
+@{
+    var t = (EnumOperation)ViewBag.Type;
+    bool  IsEdit= (t == EnumOperation.EDIT) ? true : false;
+}
+<script src="~/js/Easyui.verity.extend.js"></script>
+@Html.Hidden("Type", (int)t)
+@Html.HiddenFor(x => x.UserID)
+@Html.HiddenFor(x => x.RoleID)
+<form id="frmuserop" style=" padding-top:30px;">
+
+    <table width="100%"  align="center" id="tb_content">
+        <tr>
+            <td style="width:100px" align="right"> 用户名称：</td>
+            <td style="width:200px">
+    
+          @{if (!IsEdit)
+          {
+              @Html.TextBoxFor(x => x.UserName, new
+                    {
+                        @class = "easyui-validatebox textbox",
+                        @required = "true",
+                        @missingMessage = "请输入用户名称",
+                        @style = "width:70%;height:22px",
+                        @maxlenth = 30
+                    });
+          }
+          else
+          {
+            <span>@Model.UserName</span>
+          }
+          }
+            </td>
+        </tr>
+        <tr>
+            <td style="width:100px" align="right"> 登录名称：</td>
+            <td style="width:200px">
+                @{if (!IsEdit)
+          {
+                    @Html.TextBoxFor(x => x.LoginName,
+            new
+            {
+                @class = "easyui-validatebox textbox",
+                @required = "true",
+                @missingMessage = "请输入登录名称",
+                @style = "width:70%;height:22px",
+                @maxlenth = 30
+            });
+          }
+                  else
+                  {
+                    <span>@Model.LoginName</span>
+                  }
+}
+            </td>
+        </tr>
+
+        @{
+            if (!IsEdit)
+            {
+                <tr>
+                    <td style="width:100px" align="right"> 密码：</td>
+                    <td style="width:200px">
+
+                        @Html.PasswordFor(x => x.Password,
+            new
+            {
+                @class = "easyui-validatebox textbox",
+                @required = "true",
+                @missingMessage = "密码不能为空",
+                @style = "width:70%;height:22px",
+                @maxlenth = 20
+            })
+                    </td>
+                </tr>
+                <tr>
+                    <td style="width:100px" align="right"> 确认密码：</td>
+                    <td style="width:200px">
+                        @Html.Password("ConfirmPassword", Model.Password,
+            new
+            {
+                @class = "easyui-validatebox textbox",
+                @required = "true",
+                @missingMessage = "确认密码不能为空",
+                @style = "width:70%;height:22px",
+                @maxlenth = 20,
+                @data_require = "true",
+                @validType = "equals['#Password']",
+                @invalidMessage = "两次输入密码不匹配"
+            })
+                    </td>
+                </tr>
+            }
+
+        }
+
+        <tr>
+            <td style="width:100px" align="right"> 角色：</td>
+            <td style="width:200px">
+                <select id="RoleList" class="easyui-combobox" style="width:230px"> </select>
+            </td>
+        </tr>
+        <tr>
+            <td style="width:100px" align="right"> 是否启用：</td>
+            <td style="width:200px">
+                @*@Html.RadioButtonFor(model => model.Status, 1, new { @id = "radio1", @checked = Model.Status == 1 ? true : false })  启用
+                @Html.RadioButtonFor(model => model.Status, 0, new { @id = "radio2", @checked = Model.Status == 0 ? true : false }) 未启用*@
+
+               @{
+                   if (Model.Status == 0) { 
+                                      <input name="Status"  value="1" type="radio" />  <label>启用</label>
+                <input name="Status" checked="checked" value="0" type="radio" /><label>未启用</label>
+                   }
+                   else
+                   {
+                    <input name="Status" checked="checked" value="1" type="radio" />  <label>启用</label>
+                <input name="Status" value="0" type="radio" /><label>未启用</label>  
+                   }
+                                        
+               }
+            </td>
+        </tr>
+        <tr>
+            <td style="width:100px" colspan="2" align="center" > <a href="javascript:userOp.submit()" class="easyui-linkbutton" iconcls="icon-save" plain="true">保存</a></td>
+           
+        </tr>
+    </table>
+
+
+
+</form>
+
+
+<script>
+
+    var userOp = {
+        pageType: $("#Type").val(),
+        getparam: function (t) {
+            var data={}
+            if ($("#Type").val() == 2) {
+                data = {
+                    RoleID: $("#RoleList").combobox("getValue"),
+                    Status: $("input[name='Status']:checked").val(),
+                    eo: $("#Type").val(),
+                    UserID:$("#UserID").val()
+                }
+            }
+            else {
+                data = {
+                    UserName: $.trim($("#frmuserop #Password").val()),
+                    LoginName: $.trim($("#frmuserop #LoginName").val()),
+                    Password: $.trim($("#Password").val()),
+                    eo: $("#Type").val(),
+                    RoleID: $("#RoleList").combobox("getValue"),
+                    Status: $("input[name='Status']:checked").val()
+                }
+            }
+            return data;
+        },
+        InitSelect:function(){
+            $.ajax({
+                type: "post",
+                url: "/User/GetAllRole",
+                success: function (result) {
+                    var data = []
+                    var item = {
+                        id: 0, text: "请选择", value: 0
+                    };
+                    data.push(item);
+                    $.each(result, function (i, o) {
+                            var item = {
+                                id: o.RoleID, text: o.RoleName, value: o.RoleID
+                            }
+                            data.push(item);
+                    });
+                    $("#RoleList").combobox("loadData", data);
+    
+                    var cur = $("#RoleID").val() == "" ? "0" : $("#RoleID").val();
+                    $("#RoleList").combobox("setValue", cur);
+                }
+            });
+        },
+        check: function () {
+            var bo = true;
+           var pwd = $.trim($("#Pwd").val());
+           var confirmpwd = $.trim($("#ConfirmPwd").val());
+           bo = $("#frmuserop").form('validate');
+           if ($("#RoleList").combobox("getValue") == 0)
+           {
+               $.messager.alert('提示', "请选择角色！");
+               bo = false;
+               return false;
+           }
+           if (bo) {
+               $.ajax({
+                   async: false,
+                   type: "post",
+                   url: "/User/ValidateUserLoginName",
+                   data: { LoginName: $.trim($("#frmuserop #LoginName").val()) },
+                   success: function (result) {
+                       if (result.Code == -1) {
+                           $.messager.alert('提示', result.Msg);
+                           bo = false;
+                           return false;
+                       }
+                   }
+               });
+           }
+           else {
+               $.messager.alert('提示', "页面信息验证失败！");
+               return false;
+           }
+            return bo;
+        },
+        submit: function (t) {
+            if (this.check())
+            {
+                $.ajax({
+                    async: false,
+                    type: "post",
+                    url: "/User/UserOp",
+                    data:  this.getparam(),
+                    success: function (result) {
+                        if (result.Code == -1) {
+                            $.messager.alert('提示', result.Msg);
+                            return false;
+                        }
+                        else {
+                            location.reload();
+                        }
+                    }
+                });
+            }
+        }
+    }
+
+    $(document).ready(function () {
+        userOp.InitSelect();
+    });
+
+</script>

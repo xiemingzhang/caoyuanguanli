@@ -1,0 +1,149 @@
+﻿@{
+    Layout = "~/Views/Shared/_ContentLayout.cshtml";
+}
+<link href="~/css/ztree/zTreeStyle/zTreeStyle.css" rel="stylesheet" />
+<script src="~/js/ztree/jquery.ztree.core.js"></script>
+<script src="~/js/ztree/jquery.ztree.excheck.js"></script>
+<script type="text/javascript">
+    var funcOp = {
+        addinit: function (t) {
+            $("#tb_content input").val("");
+            if ($("#tb_content").is(":hidden")) {
+                $("#tb_content").show();
+            }
+        }, edit: function () {
+
+        }, del: function () {
+
+        },
+        nodeclick: function (event, treeId, treeNode) {
+            $("#tb_content").hide();
+            if (treeNode.id != null && treeNode.id > 0) {
+                $.post("/user/GetFunctionByFuncID",
+                    { FunctionID: treeNode.id },
+                    function (result) {
+                        if (result) {
+                            $("#FunctionID").val(result.FunctionID);
+                            $("#ParentID").val(result.ParentID);
+                            $("#MemCode").val(result.MemCode);
+                            $("#FunctionLevel").val(result.FunctionLevel);
+                            $("#FunctionName").val(result.FunctionName);
+                            $("#ControllersName").val(result.ControllersName);
+                            $("#ActionName").val(result.ActionName);
+                        }
+                    }
+                );
+                $("#tb_content").show();
+            }
+        }
+    }
+		var setting = {
+		    check: {
+		        enable: true
+		    },
+		    data: {
+		        simpleData: {
+		            enable: true
+		        }
+		    },
+		    callback: {
+		        onClick: funcOp.nodeclick
+		    },
+		};
+		$(document).ready(function () {
+		    $.ajax({
+		        type: "post",
+		        url: "/User/GetAllFunction",
+		        success: function (result) {
+		            if (result) {
+		                //debugger;
+		                $.fn.zTree.init($("#tree"), setting, result);
+		                setting.check.chkboxType = { "Y": "ps", "N": "ps" };
+		            }
+		        }
+		    });
+		});
+</script>
+<div style="margin-top:-10px; margin-left:-8px;">
+    <div id="titlebar" style="background: #f9f9f9; padding: 10px; ">
+        <b>当前位置：</b> 用户管理 > 功能管理
+    </div>
+</div>
+
+<div style="background-color:white;height:700px;width:100%;margin-top:-10px;">
+
+
+        <div id="content" style="margin:0 auto;">
+            <div style="width:30%;height:500px;float:left;" id="functionTree">
+                <div style="width:100%; padding:10px ;" id="treelist">
+                    <div class="easyui-panel" style="padding:5px">
+                        <a href="javascript:funcOp.addinit()" class="easyui-linkbutton" iconcls="icon-add" plain="true">添加功能</a>
+                        <a href="javascript:updatepwd.submit()" class="easyui-linkbutton" iconcls="icon-cancel" plain="true">删除功能</a>
+                        <ul id="tree" class="ztree"></ul>
+                    </div>
+
+                </div>
+
+            </div>
+            <div style="width:60%;height:500px;float:left;background: #f9f9f9; margin-top:10px;margin-left:20px" id="functionDetail">
+                <form id="frmfunc" style=" padding-top:30px;">
+                    @Html.Hidden("FunctionID")
+                    @Html.Hidden("ParentID")
+                    @Html.Hidden("MemCode")
+                    @Html.Hidden("FunctionLevel")
+                    <table width="100%" align="center" id="tb_content" style="display:none">
+                        <tr>
+                            <td style="width:100px" align="right"> 功能名称：</td>
+                            <td style="width:200px">
+                                @Html.TextBox("FunctionName", "", new
+                                           {
+                                               @class = "easyui-validatebox textbox",
+                                               @required = "true",
+                                               @missingMessage = "功能名称",
+                                               @style = "width:70%;height:22px",
+                                               @maxlenth = 30
+                                           })
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="width:100px" align="right">Controllor名称：</td>
+                        <td style="width:200px">
+                            @Html.TextBox("ControllersName", "", new
+                                           {
+                                               @class = "easyui-validatebox textbox",
+                                               @required = "true",
+                                               @missingMessage = "",
+                                               @style = "width:70%;height:22px",
+                                               @maxlenth = 30
+                                           })
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="width:100px" align="right"> Action名称：</td>
+                        <td style="width:200px">
+                            @Html.TextBox("ActionName", "", new
+                                           {
+                                               @class = "easyui-validatebox textbox",
+                                               @required = "true",
+                                               @missingMessage = "功能名称",
+                                               @style = "width:70%;height:22px",
+                                               @maxlenth = 30
+                                           })
+                        </td>
+                    </tr>
+
+
+                    <tr>
+                        <td style="width:100px" colspan="2" align="center"> <a href="javascript:userOp.submit()" class="easyui-linkbutton" iconcls="icon-save" plain="true">保存</a></td>
+
+                    </tr>
+                </table>
+
+
+
+            </form>
+
+
+        </div>
+    </div>
+</div>

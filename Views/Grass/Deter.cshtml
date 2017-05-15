@@ -1,0 +1,187 @@
+﻿@using GrassPlantInfo.Entity
+@{
+    Layout = null;
+    T_GrassCountyStatistics entity = ViewBag.model;
+    int id = entity.StatisticsId ?? 0;
+}
+<div id="familylist1"></div><br />
+<table id="dg" class="easyui-datagrid" title="草原退化面积操作表" url="/Grass/PrairieDegradation/@id" method="post" style="width:720px;height:auto"
+       data-options="
+                iconCls: 'icon-edit',
+                singleSelect: true,
+                toolbar: '#tb',
+                fitColumns: true,
+                rownumbers: true,
+                onClickCell: onClickCell,
+                onEndEdit: onEndEdit
+            ">
+    <thead>
+        <tr>
+            <th field="Id" hidden="true">Id</th>
+            <th field="EnumId" hidden="true">EnumId</th>
+            <th data-options="field:'Name',align:'left',width:120,
+                        formatter:function(value,row){
+                            return row.Name;
+                        },
+                        editor:{
+                            type:'combobox',
+                            options:{
+                                valueField:'Id',
+                                textField:'Name',
+                                value:this.value,
+                                Id:'EnumCombo',
+                                data:[{Id: 1,Name: '沙化'},{Id: 2,Name: '石漠化'},{Id: 3,Name: '盐渍化'}]
+                }
+                }">退化类型</th>
+            <th data-options="field:'MildArea',width:140,align:'left',editor:{type:'numberbox',options:{precision:1}}">轻度草原面积</th>
+            <th data-options="field:'ModerateArea',width:140,align:'left',editor:'numberbox'">中度草原面积</th>
+            <th data-options="field:'SevereArea',width:140,align:'left',editor:'textbox'">重度草原面积</th>
+            @*<th data-options="field:'oper',align:'left',width:80">操作</th>*@
+        </tr>
+    </thead>
+</table>
+<input type="hidden" id="grassdegenarea" name="grassdegenarea" />
+<div id="tb" style="height:auto">
+    <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-add',plain:true" onclick="append()">添加</a>
+    <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-remove',plain:true" onclick="removeit()">删除</a>
+    <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-save',plain:true" onclick="accept()">保存</a>
+    <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-undo',plain:true" onclick="reject()">撤销</a>
+    <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-search',plain:true" onclick="getChanges()">获取更改行</a>
+</div>
+<script type="text/javascript">
+    $.ajax({
+        url: "/Grass/GetDeterList",
+        type: "post",
+        dataType: "json",
+        async: false,
+        data: { "id": 3 },
+        success: function (data, status) {
+            if (data != "") {
+                var dater = JSON.stringify(data);
+                $("#deterjson").val(dater.replace(/\"/g, "'"));
+                //alert($("#deterjson").val());
+            }
+        }
+    });
+    var editIndex = undefined;
+    function endEditing() {
+        if (editIndex == undefined) { return true }
+        $('#dg').datagrid('endEdit', editIndex);
+        editIndex = undefined;
+        return true;
+    }
+    function onClickCell(index, field) {
+        if (editIndex != index) {
+            if (endEditing()) {
+                $('#dg').datagrid('selectRow', index)
+                        .datagrid('beginEdit', index);
+                var ed = $('#dg').datagrid('getEditor', { index: index, field: field });
+                if (ed) {
+                    ($(ed.target).data('textbox') ? $(ed.target).textbox('textbox') : $(ed.target)).focus();
+                    //($(ed.target).data('combobox') ? $(ed.target).combobox('textbox') : $(ed.target)).focus();
+                }
+                editIndex = index;
+            } else {
+                setTimeout(function () {
+                    $('#dg').datagrid('selectRow', editIndex);
+                }, 0);
+            }
+        }
+    }
+    function onEndEdit(index, row) {
+        var ed = $(this).datagrid('getEditor', {
+            index: index,
+            field: 'Name'
+        });
+        $(ed.target).focus();
+        row.Name = $(ed.target).combobox('getText');
+        if (isNaN($(ed.target).combobox('getValue')))
+        { }
+        else
+        { row.EnumId = $(ed.target).combobox('getValue'); }
+    }
+    function append() {
+        var index = $('#dg').datagrid('getRowIndex', $('#dg').datagrid('getSelected'));
+        if (index == -1)
+            index = 0;
+        $("#dg").datagrid("insertRow", {
+            index: index + 1,
+            row: { oper: "<a href='javascript:append()'>+<a> <a href='javascript:removeit()'>-<a>", status: 'P' }
+        });
+    }
+    function removeit() {
+        $.messager.confirm('系统提示', '您确定要删除吗?', function (r) {
+            if (r) {
+                if (editIndex == undefined) { return }
+                $('#dg').datagrid('selectRow', editIndex);
+                var rows = $('#dg').datagrid('getRows');
+                var row = rows[editIndex];
+                if (row.Id != undefined) {
+                $.ajax({
+                    async: false,
+                    type: "post",
+                    url: "/Grass/DeletePrairieType",
+                    data: { Id: row.Id },
+                    success: function (result) {
+                        $('#dg').datagrid('reload');//刷新
+                    }
+                });
+                }
+                $('#dg').datagrid('cancelEdit', editIndex)
+                   .datagrid('deleteRow', editIndex);
+                editIndex = undefined;
+            }
+        });
+    }
+    function accept() {
+        if (endEditing()) {
+            var $dg = $('#dg');
+            var allstring = "";
+            var allarray = new Array();
+            $("#grassdegenarea").val("");
+            var rows = $dg.datagrid('getChanges');
+            if (rows.length) {
+                var inserted = $dg.datagrid('getChanges', "inserted");
+                var deleted = $dg.datagrid('getChanges', "deleted");
+                var updated = $dg.datagrid('getChanges', "updated");
+                var insertstring = "";
+                var effectRow = new Object();
+                if (inserted.length) {
+                    effectRow["inserted"] = JSON.stringify(inserted);
+                    for (var i = 0; i < inserted.length; i++) {
+                        allarray.push("," + inserted[i].EnumId + "," + inserted[i].MildArea + "," + inserted[i].ModerateArea + "," + inserted[i].SevereArea);
+                    }
+                }
+                if (deleted.length) {
+                    effectRow["deleted"] = JSON.stringify(deleted);
+                }
+                if (updated.length) {
+                    effectRow["updated"] = JSON.stringify(updated);
+                    for (var i = 0; i < updated.length; i++) {
+                        allarray.push(updated[i].Id + "," + updated[i].EnumId + "," + updated[i].MildArea + "," + updated[i].ModerateArea + "," + updated[i].SevereArea);
+                    }
+                }
+                allstring = allarray.join(";");            
+                $("#grassdegenarea").val(allstring);                
+            }
+        }
+    }
+    function reject() {
+        $('#dg').datagrid('rejectChanges');
+        editIndex = undefined;
+    }
+    function getChanges() {
+        var rows = $('#dg').datagrid('getChanges');
+        alert(rows.length + ' rows are changed!');
+    }
+
+    function contains(arr, obj) {
+        var i = arr.length;
+        while (i--) {
+            if (arr[i] === obj) {
+                return true;
+            }
+        }
+        return false;
+    }
+</script>

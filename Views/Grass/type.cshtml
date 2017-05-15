@@ -1,0 +1,174 @@
+﻿@model GrassPlantInfo.Entity.T_GrassCountyStatistics
+@{
+
+    Layout = null; 
+}
+<html>
+<head title="编辑草情">
+    <link rel="stylesheet" type="text/css" href="/js/EasyUi/themes/default/easyui.css" />
+    <link rel="stylesheet" type="text/css" href="/js/themes/icon.css" />
+    <script src="/js/jquery-1.10.2.min.js"></script>
+    <script type="text/javascript" src="/js/EasyUi/jquery.easyui.min.js"></script>
+    <script src="/js/EasyUi/easyui-lang-zh_CN.js"></script>
+</head>
+<body>
+    <div class="easyui-layout" style="width:100%;height:100%;">
+        <div style="margin:10px;">
+            <h2 style="font-size:14px;">草原类型及面积</h2>
+            <hr />
+            <table id="familylist2"></table><br/>
+            <div>
+                <form id="ff" method="post" action="">
+                    <input type="hidden" id="tid" name="Id" />
+                    <p id="infotodo" style="margin: 0px 0px 20px 0px;">新增草原类型及面积</p>
+                    <table width="100%" cellspacing="5px">
+                        <tr>
+                            <td width="80px">本标准</td>
+                            <td>
+                                <input id="cmb1" name="language" >
+                            </td>
+                        </tr>
+                        <tr>
+                            <td width="80px">草地一调</td>
+                            <td>
+                                <input id="cmb2" name="language">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td width="80px">面积</td>
+                            <td>
+                                <input type="text" class="easyui-numberbox" name="area" data-options="required:true" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="2" style="padding-left:86px">
+                                <a id="btntodo" href="/Grass/CreateGrassCategory" class="easyui-linkbutton" iconcls="icon-save" plain="true">增加</a>
+                            </td>
+                        </tr>
+                    </table>
+                </form>
+            </div>
+        </div>
+    </div>
+    <script>
+        var $info = null;
+        var $btn = null;
+        var plantFamily = {
+            addState:function(){
+                $btn.text("增加");
+                $btn.attr("href","/Grass/CreateGrassCategory");
+                $info.text("新增草原类型及面积");
+                $("#ff").form("clear");
+            },
+            editState:function(){
+                $btn.text("修改");
+                $btn.attr("href","/Grass/EditGrassCategory");
+                $info.text("修改草原类型及面积");
+            },
+            list: function () {
+                $('#familylist2').treegrid({
+                    fit: false,
+                    url: '/Grass/DictionaryForTreeLoad',
+                    method: 'POST',
+                    loadMsg: "加载中,请耐心等待",
+                    striped: true,
+                    fitColumns: true,
+                    singleSelect: true,
+                    rownumbers: true,
+                    pagination: false,
+                    nowrap: true,
+                    showFooter: false,
+                    idField: 'Id',
+                    treeField: 'NodeText',
+                    columns: [[
+                        { field: 'ItemId', hidden: true },
+                        { field: 'NodeText', title: '草原类型', width: 100, align: 'center' },
+                        { field: 'Area', title: '面积', width: 100, align: 'center' },
+                        {
+                            field: 'cz', title: '操作', width: 150, align: 'center',
+                            formatter: function (val, rec) {
+                                if(rec && rec["ItemId"]>0)
+                                {
+                                    var html = "";
+                                    html += "<a class='easyui-linkbutton btnEdit' plain='true'   href='javascript:plantFamily.edit();' title='编辑'></a>&nbsp;&nbsp;&nbsp;";
+                                    html += "<a class='easyui-linkbutton btnDelete' plain='true'  href='javascript:plantFamily.del();' title='删除'></a>";
+                                    return html;
+                                }
+                            }
+                        }
+                    ]],
+                    onLoadSuccess: function () {
+                        $(".btnEdit").linkbutton({
+                            iconCls: "icon-edit"
+                        });
+                        $(".btnDelete").linkbutton({
+                            iconCls: "icon-delete"
+                        });
+                    },
+                    onBeforeLoad: function (node, param)
+                    {
+                        param.mainId=@this.ViewData["key"];
+                        param.enumID=1;
+                    }
+                });
+            },
+            edit: function () {
+            },
+            del: function (fid) {
+                var row = $("#familylist1").datagrid("getSelected");
+                $.messager.confirm('系统提示', '您确定要删除吗?', function (r) {
+                    if (r) {
+                        $.ajax({
+                            async: false,
+                            type: "post",
+                            url: "/Grass/DeletePrairieType",
+                            data: { Id: fid },
+                            success: function (result) {
+                                if (result.Code > 0) {
+                                    $.messager.alert('提示', result.Msg, 'error');
+                                }
+                                else {
+                                    $.messager.alert('提示', result.Msg, 'info');
+                                    plantFamily.list();
+                                }
+                            }
+                        });
+                    }
+                });
+            }
+        }
+
+        $(document).ready(function () {
+            $info = $("#infotodo");
+            $btn = $("#btntodo");
+            plantFamily.list();
+            $('#cmb1').combobox({
+                url:'/Grass/DictionaryList/1',
+                valueField:'Id',
+                textField:'Name',
+                editable:false,
+                onBeforeLoad:function(param)
+                {
+                    param.pid=-1;
+                },
+                onChange:function(newValue, oldValue)
+                {
+                    $('#cmb2').combobox({
+                        url:'/Grass/DictionaryList/1',
+                        valueField:'Id',
+                        textField:'Name',
+                        editable:false,
+                        onBeforeLoad:function(param)
+                        {
+                            param.pid=newValue;
+                        },
+                        onChange:function(newValue, oldValue)
+                        {
+                        }
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>

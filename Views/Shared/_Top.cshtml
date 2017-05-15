@@ -1,0 +1,48 @@
+﻿@using GrassPlantInfo.CommonTools;
+@using GrassPlantInfo.Contract.DTO.Admin;
+@{   
+var obj = Session[GlobolClass.LoginSessionName] as UserInfoDto;
+if (obj != null)
+{
+<div region="north" split="true" border="false" style="overflow: hidden;  
+        background: url(/images/layout-browser-hd-bg.gif) #7f99be repeat-x center 50%;
+        line-height: 20px;color: #fff;height:50px; font-family: Verdana, 微软雅黑,黑体">
+    <table cellspacing="0" cellpadding="0" border="0" width="100%"  style=" position:relative;">
+        <tbody>
+            <tr>
+                <td style="background-image: url(/Images/top254.jpg); background-repeat: repeat-x;" valign="top">
+                    <table cellspacing="0" cellpadding="0" border="0" style="position:absolute;z-index:120; right:50px; width:230px; height:50px;">
+                        <tbody>
+                            <tr>
+                                <td align="right" valign="center">                                   
+                                     <div>
+                                        <span id="UserName" class="text_t" style="font-size: 18px;"> @obj.LoginName</span>
+                                        <a href="javascript:logout();" id="ButtonLogout">退出</a>
+                                      </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <img src="/Images/loginlogo.png" style="z-index:100; position:absolute; left:20px; top:0px;">
+                    <img src="/Images/top254.jpg" style="z-index:90;" width="100%" height="95px;">
+
+
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+<script>
+    function logout()
+    {
+        $.messager.confirm('系统提示', '您确定要退出么?', function (r) {
+            if (r) {
+                window.location.href = "/userlogin/logout";
+            }
+
+        });
+    }
+
+</script>
+}
+}

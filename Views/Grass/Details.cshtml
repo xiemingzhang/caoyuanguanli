@@ -1,0 +1,167 @@
+﻿@model GrassPlantInfo.Entity.T_GrassCountyStatistics
+
+@{
+    Layout = null; 
+}
+
+<html>
+<head>
+    <title>草调详情</title>
+</head>
+<body style="padding:0px;margin:0px;width:700px">
+    <div style="min-width:660px;padding:0 20px">
+        <h2 style="font-size:16px;text-align:center">草地资源详细信息</h2>
+        <div>
+            <h3>资源状况</h3><hr />
+            <div>
+                <div style="margin:8px 0">
+                    <label style="width: 300px; display: inline-block; text-align: right; margin-right: 5px; font-weight: bold;">草原总面积(万亩):</label>
+                    <span>@this.Model.TotalArea.GetValueOrDefault()</span>
+                </div>
+                <div style="margin:8px 0">
+                    <label style="width: 300px; display: inline-block; text-align: right; margin-right: 5px; font-weight: bold;">国有草原面积(万亩):</label>
+                    <span>@this.Model.StateOwnedArea.GetValueOrDefault()</span>
+                </div>
+                <div style="margin:8px 0">
+                    <label style="width: 300px; display: inline-block; text-align: right; margin-right: 5px; font-weight: bold;">集体草原面积(万亩):</label>
+                    <span>@this.Model.CollectiveArea.GetValueOrDefault()</span>
+                </div>
+                <div style="margin:8px 0">
+                    <label style="width: 300px; display: inline-block; text-align: right; margin-right: 5px; font-weight: bold;">草原类型及面积(万亩):</label>
+                    <div>
+                        <ul>
+                            @{
+                                foreach (var quality in this.Model.T_PrairieTypeList)
+                                {
+                            <li>@quality.T_Dictionary.Name @quality.Area ;</li>
+                                }
+                            }
+                        </ul>
+                    </div>
+                </div>
+                <div style="margin:8px 0">
+                    <label style="width: 300px; display: inline-block; text-align: right; margin-right: 5px; font-weight: bold;">质量分级及面积(万亩):</label>
+                    <div>
+                        <ul>
+                            @{
+                                foreach (var quality in this.Model.T_QualityGradeList)
+                                {
+                            <li>@quality.T_Dictionary.Name @quality.Area ;</li>
+                                }
+                            }
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div>
+            <h3>生态状况</h3><hr />
+            <div>
+                <div style="margin:8px 0">
+                    <label style="width: 300px; display: inline-block; text-align: right; margin-right: 5px; font-weight: bold;">草原综合植被盖度(%):</label>
+                    <span>@this.Model.VegetationCoverage.GetValueOrDefault()</span>
+                </div>
+                <div style="margin:8px 0">
+                    <label style="width: 300px; display: inline-block; text-align: right; margin-right: 5px; font-weight: bold;">草原退化(万亩):</label>
+                    <div>
+                        <ul>
+                            @foreach (GrassPlantInfo.Entity.T_PrairieDegradation item2 in this.Model.T_PrairieDegradationList)
+                            {
+                            <li>
+                                @item2.T_Dictionary.Name:
+                                轻度草原面积:@item2.MildArea.GetValueOrDefault();中度草原面积:@item2.ModerateArea.GetValueOrDefault();重度草原面积:@item2.SevereArea.GetValueOrDefault()
+                            </li>
+                            }
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div>
+            <h3>利用状况</h3><hr />
+            <div>
+                <div style="margin:8px 0">
+                    <label style="width: 300px; display: inline-block; text-align: right; margin-right: 5px; font-weight: bold;">草原承包面积(万亩):</label>
+                    <span>@this.Model.ContractArea.GetValueOrDefault()</span>
+                </div>
+                <div style="margin:8px 0">
+                    <label style="width: 300px; display: inline-block; text-align: right; margin-right: 5px; font-weight: bold;">落实承包的国有草原面积(万亩):</label>
+                    <span>@this.Model.ContractStateArea.GetValueOrDefault()</span>
+                </div>
+                <div style="margin:8px 0">
+                    <label style="width: 300px; display: inline-block; text-align: right; margin-right: 5px; font-weight: bold;">落实承包的集体草原面积(万亩):</label>
+                    <span>@this.Model.ContractCollectiveArea.GetValueOrDefault()</span>
+                </div>
+                <div style="margin:8px 0">
+                    <label style="width: 300px; display: inline-block; text-align: right; margin-right: 5px; font-weight: bold;">已纳入不动产统一确权登记的草原承包面积(万亩):</label>
+                    <span>@this.Model.ImmovableArea.GetValueOrDefault()</span>
+                </div>
+                <div style="margin:8px 0">
+                    <label style="width: 300px; display: inline-block; text-align: right; margin-right: 5px; font-weight: bold;">已纳入自然资源统一确权登记的草原承包面积(万亩):</label>
+                    <span>@this.Model.NaturalArea.GetValueOrDefault()</span>
+                </div>
+                <div style="margin:8px 0">
+                    <label style="width: 300px; display: inline-block; text-align: right; margin-right: 5px; font-weight: bold;">国有农牧场的草原面积(万亩):</label>
+                    <span>@this.Model.StateRanchArea.GetValueOrDefault()</span>
+                </div>
+                <div style="margin:8px 0">
+                    <label style="width: 300px; display: inline-block; text-align: right; margin-right: 5px; font-weight: bold;">已改制国有农牧场的草原面积(万亩):</label>
+                    <span>@this.Model.ReformedArea.GetValueOrDefault()</span>
+                </div>
+                <div style="margin:8px 0">
+                    <label style="width: 300px; display: inline-block; text-align: right; margin-right: 5px; font-weight: bold;">国有草原向集体经济组织外流转的面积(万亩):</label>
+                    <span>@this.Model.ToCollectiveArea.GetValueOrDefault()</span>
+                </div>
+                <div style="margin:8px 0">
+                    <label style="width: 300px; display: inline-block; text-align: right; margin-right: 5px; font-weight: bold;">已公告基本草原面积(万亩):</label>
+                    <span>@this.Model.NoticedArea.GetValueOrDefault()</span>
+                </div>
+                <div style="margin:8px 0">
+                    <label style="width: 300px; display: inline-block; text-align: right; margin-right: 5px; font-weight: bold;">完成技术划定但未公告的基本草原面积(万亩):</label>
+                    <span>@this.Model.CompleteNotNoticeArea.GetValueOrDefault()</span>
+                </div>
+                <div style="margin:8px 0">
+                    <label style="width: 300px; display: inline-block; text-align: right; margin-right: 5px; font-weight: bold;">纳入生态保护红线草原面积(万亩):</label>
+                    <span>@this.Model.EcologicalRedLineArea.GetValueOrDefault()</span>
+                </div>
+                <div style="margin:8px 0">
+                    <label style="width: 300px; display: inline-block; text-align: right; margin-right: 5px; font-weight: bold;">纳入各类保护地草原面积(万亩):</label>
+                    <span>@this.Model.VariousProtectedArea.GetValueOrDefault()</span>
+                </div>
+                <div style="margin:8px 0">
+                    <label style="width: 300px; display: inline-block; text-align: right; margin-right: 5px; font-weight: bold;">禁止开发区内的草原面积(万亩):</label>
+                    <span>@this.Model.ProhibitedZoneArea.GetValueOrDefault()</span>
+                </div>
+                <div style="margin:8px 0">
+                    <label style="width: 300px; display: inline-block; text-align: right; margin-right: 5px; font-weight: bold;">限制开发区内的草原面积(万亩):</label>
+                    <span>@this.Model.RestrictedDevelopArea.GetValueOrDefault()</span>
+                </div>
+                <div style="margin:8px 0">
+                    <label style="width: 300px; display: inline-block; text-align: right; margin-right: 5px; font-weight: bold;">重点开发区内的草原面积(万亩):</label>
+                    <span>@this.Model.KeyDevelopArea.GetValueOrDefault()</span>
+                </div>
+                <div style="margin:8px 0">
+                    <label style="width: 300px; display: inline-block; text-align: right; margin-right: 5px; font-weight: bold;">优化开发区内的草原面积(万亩):</label>
+                    <span>@this.Model.optimizeDevelopArea.GetValueOrDefault()</span>
+                </div>
+                <div style="margin:8px 0">
+                    <label style="width: 300px; display: inline-block; text-align: right; margin-right: 5px; font-weight: bold;">超载率小于10%的草原面积(万亩):</label>
+                    <span>@this.Model.OverloadLittle.GetValueOrDefault()</span>
+                </div>
+                <div style="margin:8px 0">
+                    <label style="width: 300px; display: inline-block; text-align: right; margin-right: 5px; font-weight: bold;">超载率10%-15%的草原面积(万亩):</label>
+                    <span>@this.Model.OverloadMiddle.GetValueOrDefault()</span>
+                </div>
+                <div style="margin:8px 0">
+                    <label style="width: 300px; display: inline-block; text-align: right; margin-right: 5px;font-weight:bold;">超载率大于15%的草原面积(万亩):</label>
+                    <span>@this.Model.OverloadGreat.GetValueOrDefault()</span>
+                </div>
+                <div style="margin:8px 0">
+                    <label style="width: 300px; display: inline-block; text-align: right; margin-right: 5px; font-weight: bold;">年末草食家畜存栏数量(羊单位):</label>
+                    <span>@this.Model.LivestockHerdsNumber.GetValueOrDefault()</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,135 @@
+﻿@model GrassPlantInfo.Entity.T_GrassCountyStatistics
+@{
+
+    Layout = null;
+}
+<html>
+<head title="编辑草情">
+    <link rel="stylesheet" type="text/css" href="/js/EasyUi/themes/default/easyui.css" />
+    <link rel="stylesheet" type="text/css" href="/js/themes/icon.css" />
+    <script src="/js/jquery-1.10.2.min.js"></script>
+    <script type="text/javascript" src="/js/EasyUi/jquery.easyui.min.js"></script>
+    <script src="/js/EasyUi/easyui-lang-zh_CN.js"></script>
+</head>
+<body>
+    <div class="easyui-layout" style="width:100%;height:100%;">
+        <div style="margin:10px;">
+            <h2 style="font-size:14px;">质量分级及面积</h2>
+            <hr />
+            <div id="familylist"></div>
+            <div>
+                <form id="ff" method="post" action="">
+                    <input type="hidden" id="tid" name="Id" />
+                    <p style="margin: 0px 0px 20px 0px;">新增质量分级及面积</p>
+                    <table width="100%" cellspacing="5px">
+                        <tr>
+                            <td width="80px">质量分级</td>
+                            <td>
+                                <input class="easyui-combobox"
+                                       name="language"
+                                       data-options="
+					url:'/Grass/DictionaryList/1',required:true,
+					method:'get',
+					valueField:'Id',
+					textField:'Name',
+					panelHeight:'auto'">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td width="80px">面积</td>
+                            <td>
+                                <input type="text" class="easyui-numberbox" name="Area" data-options="required:true" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="2" style="padding-left:86px">
+                                <a href="javascript:plantFamilyOp.submit()" class="easyui-linkbutton" iconcls="icon-save" plain="true">保存</a>
+                            </td>
+                        </tr>
+                    </table>
+                </form>
+            </div>
+        </div>
+    </div>
+</body>
+<script>
+    var plantFamily = {
+        getparam: function () {
+            var data = {
+                id: @this.ViewData["key"]
+            }
+            return data;
+        },
+        list: function () {
+            $('#familylist').datagrid({
+                fit: false,
+                url: '/Grass/QualityGrade',
+                method: 'POST',
+                loadMsg: "加载中,请耐心等待",
+                queryParams: this.getparam(),
+                striped: true,
+                fitColumns: true,
+                singleSelect: true,
+                rownumbers: true,
+                pagination: false,
+                nowrap: true,
+                showFooter: false,
+                columns: [[
+                    { field: 'Id',hidden:true},
+                    { field: 'T_Dictionary.Name', title: '质量分级', width: 80, align: 'center', resizable: false, fixed: true },
+                    { field: 'Area', title: '面积', width: 100, align: 'center' },
+                    {
+                        field: 'cz', title: '操作', width: 150, align: 'center',
+                        formatter: function (val, rec) {
+                            var html = "";
+                            html += "<a class='easyui-linkbutton btnEdit' plain='true'   href='javascript:plantFamily.edit(" + rec.Id + ",'"+rec.T_Dictionary.Name+"',"+rec.Area+");' title='编辑'></a>&nbsp;&nbsp;&nbsp;";
+                            html += "<a class='easyui-linkbutton btnDelete' plain='true'  href='javascript:plantFamily.del(" + rec.Id + ");' title='删除'></a>";
+                            return html;
+                        }
+                    }
+                ]],
+                onLoadSuccess: function () {
+                    $(".btnEdit").linkbutton({
+                        iconCls: "icon-edit"
+                    });
+                    $(".btnDelete").linkbutton({
+                        iconCls: "icon-delete"
+                    });
+                }
+            });
+        },
+        edit: function (fid,name,area) {
+            $("#tid").val(fid);
+            $('#ff').form('load',{
+                name:name,
+                area:area,
+            });
+        },
+        del: function (fid) {
+            $.messager.confirm('系统提示', '您确定要删除吗?', function (r) {
+                if (r) {
+                    $.ajax({
+                        async: false,
+                        type: "post",
+                        url: "/Grass/DeletePrairieType",
+                        data: { Id: fid},
+                        success: function (result) {
+                            if (result.Code > 0) {
+                                $.messager.alert('提示', result.Msg, 'error');
+                            }
+                            else {
+                                $.messager.alert('提示', result.Msg, 'info');
+                                plantFamily.list();
+                            }
+                        }
+                    });
+                }
+            });
+        }
+    }
+
+    $(document).ready(function () {
+        plantFamily.list();
+    });
+</script>
+</html>

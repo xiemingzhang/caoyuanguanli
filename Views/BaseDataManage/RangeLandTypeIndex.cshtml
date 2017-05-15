@@ -1,0 +1,352 @@
+﻿@{
+    Layout = "~/Views/Shared/_MapLayout.cshtml";
+}
+
+@using GrassPlantInfo.GIS;
+@using GrassPlantInfo.GIS.Common;
+@using GrassPlantInfo.Service.GIS;
+@using GrassPlantInfo.Contract.DTO.GIS;
+@model GrassPlantInfo.Service.GIS.RangeLandTypeService
+
+<script src="~/Scripts/highcharts/highcharts.js"></script>
+<script src="~/Scripts/highcharts/modules/exporting.js"></script>
+
+<style type="text/css">
+    .panel-button-left {
+        background: url(../map/images/layout_button_left.gif) no-repeat;
+        width: 16px;
+        height: 16px;
+        position: absolute;
+        z-index: 2;
+        top: 36px;
+        right: 10px;
+        margin-top: 4px;
+    }
+
+    .panel-button-right {
+        background: url(../map/images/layout_button_right.gif) no-repeat;
+        width: 16px;
+        height: 16px;
+        display: block;
+        position: absolute;
+        z-index: 2;
+        top: 36px;
+        right: 10px;
+        margin-top: 4px;
+    }
+
+    .panel-show {
+        display: block;
+    }
+
+    .panel-hide {
+        display: none;
+    }
+</style>
+
+
+<!--global class-->
+<script type="text/javascript">
+    var App = {
+        MapBase: null
+    };
+</script>
+
+<!--Load BaseMap and rangeland-type layer-->
+<script type="text/javascript">
+    require({ async: true }, ["../map/js/MapBase.js", "dojo/query", "esri/layers/ArcGISTiledMapServiceLayer"],
+        function (mapbase, query, ArcGISTiledMapServiceLayer) {
+
+            App.MapBase = mapbase.CreateNew();
+            App.MapBase.LoadBaseMap("@Model.BaseMap.BaseMap.ServiceAuth");
+
+            query(".rangeLandType").forEach(function (node) {
+                node.onclick = function () {
+                    if (node.checked) {
+
+                        if (App.MapBase.Map.getLayer("@Model.BackgroundLayer.LayerName") == undefined) {
+                            var pLayerBk = new ArcGISTiledMapServiceLayer("@Model.BackgroundLayer.ServiceAuth", { id: "@Model.BackgroundLayer.LayerName" });
+                            App.MapBase.Map.addLayer(pLayerBk);
+                        }
+
+                        var pLayer = new ArcGISTiledMapServiceLayer(node.value, { id: node.id });
+                        App.MapBase.Map.addLayer(pLayer);
+
+                        if (App.MapBase.Map.getLayer("@Model.BaseMap.InitLayers[0].SvsName") == undefined)
+                        {
+                            @foreach(var li in @Model.BaseMap.InitLayers)
+                            {
+                                <text>
+                                App.MapBase.Map.addLayer(new ArcGISTiledMapServiceLayer("@li.ServiceAuth", { id: "@li.SvsName" }));
+                                </text>
+                            }
+                        }
+                    }
+                    else {
+                        try {
+                            var pLayerBk = App.MapBase.Map.getLayer("@Model.BackgroundLayer.LayerName");
+                            if (pLayerBk != undefined) {
+                                App.MapBase.Map.removeLayer(pLayerBk);
+                            }
+
+                            var pLayerbj = App.MapBase.Map.getLayer("@Model.BaseMap.InitLayers[0].SvsName");
+                            if (pLayerbj != undefined)
+                            {
+                                App.MapBase.Map.removeLayer(pLayerbj);
+                            }
+
+                            var pLayer = App.MapBase.Map.getLayer(node.id);
+                            App.MapBase.Map.removeLayer(pLayer);
+                        } catch (e) {
+
+                        }
+                    }
+                };
+            });
+        });
+
+    require(["dojo/query", "dojo/dom-class", "dojo/domReady!"], function (query, domClass) {
+        query("#panel-button").forEach(function (node) {
+            node.onclick = function () {
+                if (domClass.contains(node, "panel-button-left")) {
+                    domClass.replace(node, "panel-button-right", "panel-button-left");
+                    domClass.replace("funcPanel", "panel-show", "panel-hide");
+                }
+                else if (domClass.contains(node, "panel-button-right")) {
+                    domClass.replace(node, "panel-button-left", "panel-button-right");
+                    domClass.replace("funcPanel", "panel-hide", "panel-show");
+                }
+            };
+        });
+    });
+</script>
+<!--chart display-->
+<script type="text/javascript">
+    $(function () {
+        var chart;
+        $(document).ready(function () {
+            $('#chart-container-pie-2016').highcharts({
+                chart: {
+                    plotBackgroundColor: null,
+                    plotBorderWidth: null,
+                    plotShadow: false
+                },
+                title: {
+                    text: '2016年草原类型图'
+                },
+                tooltip: {
+                    pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>'
+                },
+                plotOptions: {
+                    pie: {
+                        allowPointSelect: true,
+                        cursor: 'pointer',
+                        dataLabels: {
+                            enabled: true,
+                            color: '#000000',
+                            connectorColor: '#000000',
+                            format: '<b>{point.name}</b>: {point.percentage:.1f} %'
+                        },
+                        showInLegend: true
+                    }
+                },
+                series: [{
+                    type: 'pie',
+                    name: '土地类型',
+                    data: [
+                        ['低地草甸类', 18.09],
+                        ['山地草甸类', 1415.57],
+                        ['温性草甸草原类', 330.645],
+                         {
+                             name: '温性草原类',
+                             y: 7450.2,
+                             sliced: true,
+                             selected: true
+                         },
+                        ['温性荒漠草原类', 14892.6],
+                        ['温性草原化荒漠类', 2470.52],
+                        ['温性荒漠类', 189.503],
+                        ['沼泽类', 0.064]
+                        //,['其他', 25905.86]
+                    ]
+                }]
+            });
+        });
+    });
+    $(function () {
+        var chart;
+        $(document).ready(function () {
+            $('#chart-container-pie-2000').highcharts({
+                chart: {
+                    plotBackgroundColor: null,
+                    plotBorderWidth: null,
+                    plotShadow: false
+                },
+                title: {
+                    text: '2000年草原类型图'
+                },
+                tooltip: {
+                    pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>'
+                },
+                plotOptions: {
+                    pie: {
+                        allowPointSelect: true,
+                        cursor: 'pointer',
+                        dataLabels: {
+                            enabled: true,
+                            color: '#000000',
+                            connectorColor: '#000000',
+                            format: '<b>{point.name}</b>: {point.percentage:.1f} %'
+                        },
+                        showInLegend: true
+                    }
+                },
+                series: [{
+                    type: 'pie',
+                    name: '土地类型',
+                    data: [
+                        ['低地草甸类', 190.41],
+                        ['山地草甸类', 1454.2],
+                        ['温性草甸草原类', 184.26],
+                         {
+                             name: '温性草原类',
+                             y: 7272.27,
+                             sliced: true,
+                             selected: true
+                         },
+                        ['温性荒漠草原类', 14449],
+                        ['温性草原化荒漠类', 1677.33],
+                        ['温性荒漠类', 725.74],
+                        ['沼泽类', 17.24]
+                        //,['其他', 25905.86]
+                    ]
+                }]
+            });
+        });
+    });
+    $(function () {
+        var chart;
+        $(document).ready(function () {
+            $('#chart-container-pie-1980').highcharts({
+                chart: {
+                    plotBackgroundColor: null,
+                    plotBorderWidth: null,
+                    plotShadow: false
+                },
+                title: {
+                    text: '1980年草原类型图'
+                },
+                tooltip: {
+                    pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>'
+                },
+                plotOptions: {
+                    pie: {
+                        allowPointSelect: true,
+                        cursor: 'pointer',
+                        dataLabels: {
+                            enabled: true,
+                            color: '#000000',
+                            connectorColor: '#000000',
+                            format: '<b>{point.name}</b>: {point.percentage:.1f} %'
+                        },
+                        showInLegend: true
+                    }
+                },
+                series: [{
+                    type: 'pie',
+                    name: '土地类型',
+                    data: [
+                        ['低地草甸类', 113.76],
+                        ['山地草甸类', 1350.40],
+                        ['温性草甸草原类', 341.87],
+                         {
+                             name: '温性草原类',
+                             y: 7943.97,
+                             sliced: true,
+                             selected: true
+                         },
+                        ['温性荒漠草原类', 17467.6],
+                        ['温性草原化荒漠类', 3021.92],
+                        ['温性荒漠类', 490.66],
+                        ['沼泽类', 49.64]
+                        //,['其他', 21096.48]
+                    ]
+                }]
+            });
+        });
+    });
+</script>
+@{
+    var yearArray = new string[] {"1980","2000","2016" };
+    var typeArray = new string[] { "低地草甸类", "山地草甸类", "温性草甸草原类", "温性草原类", "温性荒漠草原类", "温性草原化荒漠类", "温性荒漠类", "沼泽类", "其他" };
+}
+@functions {
+    public RangeLandTypeDto QueryTypeList(string year, string type)
+    {
+        return @Model.RangeLandQueryAreaList.Find(delegate(RangeLandTypeDto p) { return p.Year.ToString().Trim() == year && p.RangeLandType.Trim() == type; });
+    }
+}
+<!--functioning panel-->
+<div id="funcPanel" class="funcPanel" style="width: 520px; padding-top: 10px; height: 90%; overflow: auto">
+    <div>
+        <ul>
+            @foreach (var TypeLayer in @Model.RangeLandLayerList)
+            {
+                <li><input class="rangeLandType" name="MonitorSite" id="@TypeLayer.LayerName" type="checkbox" value="@TypeLayer.ServiceAuth" /><a onclick="App.MapBase.Dom.byId('@TypeLayer.LayerName').click()">@TypeLayer.LayerCnName</a></li>
+            }
+        </ul>
+    </div>
+   
+    <div id="info" style="margin-top:10px;"><img style=" width:150px; height:250px;" src="~/map/images/TypeLegLegend.png" /></div>
+
+    <table border="1">
+        <caption>宁夏草原类型分布面积(km<sup>2</sup>)</caption>
+        <thead>
+            <tr>
+                <th rowspan="2" class="a-ca-head-title">
+                    <div class="a-ca-ht-div">
+                        <table>
+                            <thead>
+                                <tr class="a-ca-ht-worker">
+                                    <th>类型</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                        </table>
+                    </div>
+                </th>    
+                @foreach (var year in yearArray)
+                {
+                    <th colspan="2">@(year)年</th>
+                }
+            </tr>
+            <tr>
+                @foreach (var year in yearArray)
+                {
+                    <th>面积</th>
+                    <th>比例</th>
+                }
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var type in typeArray)
+            {
+                <tr>
+                    <td>@type</td>
+                    @foreach (var year in yearArray)
+                    {
+                        <td>@(QueryTypeList(year, type) != null ? String.Format("{0:F}",QueryTypeList(year, type).Area) : "")</td>
+                        <td>@(QueryTypeList(year, type) != null ? String.Format("{0:F}",QueryTypeList(year, type).Ratio*100) : "")</td>
+                    }
+                </tr>
+            }
+        </tbody>
+    </table>
+    <div>
+        <div id="chart-container-pie-2016" style="min-width: 500px; height: 400px; max-width: 500px; margin: 50px auto 10px auto; float: left"></div>
+        <div id="chart-container-pie-2000" style="min-width: 500px; height: 400px; max-width: 500px; margin: 50px auto 10px auto; float: left"></div>
+        <div id="chart-container-pie-1980" style="min-width: 500px; height: 400px; max-width: 500px; margin: 50px auto 10px auto; float: left"></div>
+    </div>
+</div>
+
+<div id="panel-button" class="panel-button-right"></div>

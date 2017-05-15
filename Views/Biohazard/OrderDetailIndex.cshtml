@@ -1,0 +1,102 @@
+﻿@{
+    Layout = null;
+}
+@using GrassPlantInfo.Contract.DTO.Admin;
+@using GrassPlantInfo.Contract.Enum;
+@model OrderDto
+@{
+    var t = (EnumOperation)ViewBag.Type;
+    bool isDetail = (t == EnumOperation.DETAIL) ? true : false;
+}
+
+@Html.Hidden("Type", (int)t)
+@Html.HiddenFor(x => x.OrderId)
+<table width="100%" align="center" id="tb_content">
+    <tr>
+        <td style="width:100px" align="right">目名称：</td>
+        <td style="width:200px">
+            @{
+                if (!isDetail)
+                {
+                    @Html.TextBoxFor(x => x.OrderName, new { @class = "easyui-validatebox textbox", @required = "true", @missingMessage = "目名称", @style = "width:90%;height:32px", @maxlenth = 30, @data_require = "true" })
+                }
+                else
+                {
+                    @Html.Label(Model.OrderName)
+                }
+            }
+
+        </td>
+    </tr>
+    @{
+
+        if (!isDetail)
+        {
+            <tr>
+                <td style="width:100px" colspan="2" align="center"><a href="javascript:plantGeneraOp.submit()" class="easyui-linkbutton" iconcls="icon-save" plain="true">保存</a></td>
+
+            </tr>
+        }
+    }
+</table>
+<script>
+    var orderOp = {
+        pageType: $("#Type").val(),
+        getparam: function (t) {
+            var data = {
+                OrderName: $.trim($("#OrderName").val()),
+                OrderId: $("#OrderId").val(),
+                eo: this.pageType
+            }
+            return data;
+        },
+        check: function () {
+            var bo = true;
+            var inputlist = $("#tb_content input[type='text']");
+            $.each(inputlist, function (i, o) {
+                if ($.trim($(o).val()).length == 0) {
+                    var text = $(o).parent().prev("td").text().replace(":", "").replace("：", "").replace("*", "")
+                    $.messager.alert('提示', text + "不能为空");
+                    bo = false;
+                    return false;
+                }
+
+            });
+            if (bo) {
+                $.ajax({
+                    async: false,
+                    type: "post",
+                    url: "/Biohazard/ValidateOrderName",
+                    data: { OrderName: $.trim($("#OrderName").val()), OrderId: $("#OrderId").val(), eo: this.pageType },
+                    success: function (result) {
+                        if (result.Code == -1) {
+                            $.messager.alert('提示', result.Msg);
+                            bo = false;
+                            return false;
+                        }
+                    }
+                });
+            }
+            return bo;
+        },
+        submit: function (t) {
+            if (this.check()) {
+                $.ajax({
+                    async: false,
+                    type: "post",
+                    url: "/Biohazard/OrderOp",
+                    data: this.getparam(),
+                    success: function (result) {
+                        if (result.Code == -1) {
+                            $.messager.alert('提示', result.Msg);
+                            return false;
+                        }
+                        else {
+                            location.reload();
+                        }
+                    }
+                });
+            }
+        }
+    }
+</script>

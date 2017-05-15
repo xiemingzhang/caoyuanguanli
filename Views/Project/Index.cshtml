@@ -1,0 +1,152 @@
+﻿@{
+    Layout = "~/Views/Shared/_ContentLayout.cshtml";
+    string isDisplaySet = "", isDisplayEdit = "", isDisplayAdd = "", isDisplayDel = "", isDisplayImport = "", isDisplayExport = "";
+    if (ViewData["btnDisplay"] != null)
+    {
+        isDisplayAdd = ((ControlButtonDto)ViewData["btnDisplay"]).AddDisplay ? "visible" : "hidden";
+        isDisplayEdit = ((ControlButtonDto)ViewData["btnDisplay"]).EditDisplay ? "visible" : "hidden";
+        isDisplayDel = ((ControlButtonDto)ViewData["btnDisplay"]).DelDisplay ? "visible" : "hidden";
+        isDisplayImport = ((ControlButtonDto)ViewData["btnDisplay"]).ImportDisplay ? "visible" : "hidden";
+        isDisplaySet = ((ControlButtonDto)ViewData["btnDisplay"]).SetDisplay ? "visible" : "hidden";
+        isDisplayExport = ((ControlButtonDto)ViewData["btnDisplay"]).ExportDisplay ? "visible" : "hidden";
+    }
+}
+@using GrassPlantInfo.Contract.DTO.Admin;
+
+<style>
+    .datagrid-row {
+        height: 32px;
+    }
+</style>
+<div style="margin-top:-10px; margin-left:-8px;">
+    <div id="titlebar" style="background: #f9f9f9; padding: 10px; ">
+        <b>当前位置：</b> 草原管理系统 > 工程管理 > 工程数据库
+    </div>
+</div>
+<div style="margin-top:-10px; margin-left:-8px;">
+    <div id="toolbar" style="background: #f9f9f9; padding: 10px; height:20px; ">
+        名称： <input class="textbox" style="height:18px; width:10%;" id="Name" value="" />
+        <a href="javascript:Proj.list()" id="Search" class="easyui-linkbutton" plain="true" iconcls="icon-search">查询</a>
+        <a href="javascript:Proj.add()" id="add" style="visibility:@isDisplayAdd" class="easyui-linkbutton" plain="true" iconcls="icon-add">新增</a>
+    </div>
+    <div id="ProjectList"></div>
+    <div id="w"></div>
+</div>
+ 
+<script>
+    var Proj = {
+        getparam: function () {
+            var data = {
+                Name: $.trim($("#Name").val())
+            }
+            return data;
+        },
+        list: function () {
+            $('#ProjectList').datagrid({
+                fit: false,
+                url: '/Project/ProjectList',
+                method: 'POST',
+                loadMsg: "加载中,请耐心等待",
+                queryParams: this.getparam(),
+                striped: true,
+                fitColumns: true,
+                singleSelect: true,
+                rownumbers: true,
+                pagination: true,
+                nowrap: true,
+                pageSize: 15,
+                pageList: [10, 15, 30, 50],
+                showFooter: true,
+                columns: [[
+                    { field: 'Id',hidden:true},
+                    { field: 'Name', title: '名称', width: 150, align: 'center', resizable: false, fixed: true },
+                    { field: 'Yearly', title: '年度', width: 80, align: 'center', resizable: false, fixed: true },
+                    { field: 'Xian', title: '县', width: 80, align: 'center', resizable: false, fixed: true },
+                    { field: 'Xiang', title: '乡', width: 80, align: 'center', resizable: false, fixed: true },
+                    { field: 'Cun', title: '村', width: 80, align: 'center', resizable: false, fixed: true },
+                    { field: 'Area', title: '面积', width: 80, align: 'center', resizable: false, fixed: true },
+                    {
+                        field: 'cz', title: '操作', width: 80, align: 'center',fixed: true,
+                        formatter: function (val, rec) {
+                            //var html = "<a class='easyui-linkbutton btnShow' plain='true' href='javascript:Project.detail(" + rec.StatisticsId + ");' title='查看详情' ></a>&nbsp;&nbsp;&nbsp;";
+                            var html = "<a class='easyui-linkbutton btnEdit' plain='true' style='visibility:@isDisplayEdit'   href='javascript:Proj.edit(" + rec.Id + ");' title='编辑'></a>&nbsp;&nbsp;&nbsp;";
+                            html += "<a class='easyui-linkbutton btnDelete' plain='true' style='visibility:@isDisplayDel'  href='javascript:Proj.del(" + rec.Id + ");' title='删除'></a>";
+                            return html;
+                        }
+                    }
+                ]],
+                onLoadSuccess: function () {
+                    $(".btnShow").linkbutton({
+                        iconCls: "icon-show"
+                    });
+                    $(".btnEdit").linkbutton({
+                        iconCls: "icon-edit"
+                    });
+                    $(".btnDelete").linkbutton({
+                        iconCls: "icon-delete"
+                    });
+                }
+            });
+            $("#ProjectList").datagrid("getPager").pagination({
+                beforePageText: '第',
+                afterPageText: '页    共 {pages} 页',
+                pageList: [10, 15, 30, 50],
+                displayMsg: "显示 {from} 到 {to} 条记录 ,  共 {total} 条记录",
+            });
+        },
+        add: function () {
+            $('#w').window({
+                width: 400,
+                height: 300,
+                modal: true,
+                href: "/Project/OpProject?eo=1",
+                title: "新增工程信息"
+            });
+        },
+        detail: function (fid) {
+            $('#w').window({
+                width: 370,
+                height: 400,
+                modal: true,
+                href: "/Project/OpProject?eo=4&Id=" + fid,
+                title: "工程详细信息"
+            });
+        },
+        edit: function (fid) {
+            $('#w').window({
+                width: 400,
+                height: 400,
+                modal: true,
+                href: "/Project/OpProject?eo=2&Id=" + fid,
+                title: "编辑工程信息"
+            });
+        },
+        del: function (fid) {
+            var row = $('#ProjectList').datagrid('getSelected');
+            $.messager.confirm('系统提示', '您确定要删除吗?', function (r) {
+                if (r) {
+                    $.ajax({
+                        async: false,
+                        type: "post",
+                        url: "/Project/DelProject",
+                        data: { id: fid },
+                        success: function (result) {
+                            if (result.Code > 0) {
+                                $.messager.alert('提示', result.Msg, 'info');
+                                Proj.list();
+                            }
+                            else {
+                                $.messager.alert('提示', result.Msg, 'error');
+                            }
+                        }
+                    });
+                }
+            });
+        }
+    }
+
+    $(document).ready(function () {
+        Proj.list();
+    });
+</script>
+

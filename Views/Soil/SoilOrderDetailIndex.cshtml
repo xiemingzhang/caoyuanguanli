@@ -1,0 +1,143 @@
+﻿@{
+
+    Layout = null;
+}
+@using GrassPlantInfo.Contract.DTO.Admin;
+@using GrassPlantInfo.Contract.Enum;
+@model SoilOrderDto
+@{
+    var t = (EnumOperation)ViewBag.Type;
+    bool isDetail = (t == EnumOperation.DETAIL)?true:false;
+}
+
+@Html.Hidden("Type",(int)t)
+@Html.HiddenFor(x => x.SoilOrderID)
+
+<table width="100%" align="center" id="tb_content">
+    
+    <tr>
+        <td style="width:100px" align="right"> 土纲名称：</td>
+        <td style="width:200px">        
+
+            @{
+                if (!isDetail)
+                {
+                    @Html.TextBoxFor(x => x.SoilOrderName, new { @class = "easyui-validatebox textbox", @required = "true", @missingMessage = "土纲名称", @style = "width:70%;height:22px", @maxlenth = 30, @data_require = "true" })
+                }
+                else
+                {
+                    @Html.Label(Model.SoilOrderName)
+                }
+            }
+
+        </td>
+    </tr>
+    <tr>
+        <td style="width:100px" align="right"> 土纲代码：</td>
+        <td style="width:200px">
+           
+            @{
+                if (!isDetail)
+                {
+                    @Html.TextBoxFor(x => x.SoilOrderCode, new { @class = "easyui-validatebox textbox", @required = "true", @missingMessage = "土纲代码", @style = "width:70%;height:22px", @maxlenth = 30, @data_require = "true" })
+                }
+                else
+                {
+
+                        @Html.Label(string.IsNullOrEmpty(Model.SoilOrderCode) ? "" : Model.SoilOrderCode)
+                }
+}
+
+        </td>
+    </tr>
+        @{
+
+        if (!isDetail)
+        {
+            <tr>
+                <td style="width:100px" colspan="2" align="center"><a href="javascript:plantFamilyOp.submit()" class="easyui-linkbutton" iconcls="icon-save" plain="true">保存</a></td>
+
+            </tr>
+        }
+    }
+</table>
+
+<script>
+
+    var plantFamilyOp = {
+        pageType: $("#Type").val(),
+        getparam: function (t) {
+            var data = {
+                SoilOrderID: $.trim($("#SoilOrderID").val()),
+                SoilOrderCode: $.trim($("#SoilOrderCode").val()),
+                SoilOrderName: $("#SoilOrderName").val(),
+                eo:this.pageType
+            }
+            return data;
+        },
+        check: function () {
+            var bo = true;
+            
+            //if ($.trim($("#SoilOrderName").val()).length == 0)
+            //{
+            //    $.messager.alert('提示', "土纲名称不能为空！");
+            //    bo = false;
+            //    return false;
+            //}
+            //if ($.trim($("#SoilOrderCode").val()).length == 0) {
+            //    $.messager.alert('提示', "土纲代码不能为空！");
+            //    bo = false;
+            //    return false;
+            //}
+            //验证文本框
+            var inputlist = $("#tb_content input[type='text']");
+            $.each(inputlist, function (i, o) {
+                if ($.trim($(o).val()).length == 0) {
+                    var text = $(o).parent().prev("td").text().replace(":", "").replace("：", "").replace("*", "")
+                    $.messager.alert('提示', text + "不能为空");
+                    bo = false;
+                    return false;
+                }
+
+            });
+
+            if (bo) {
+                $.ajax({
+                    async: false,
+                    type: "post",
+                    url: "/Soil/ValidatePlantFamilyName",
+                    data: this.getparam(),
+                    success: function (result) {
+                        if (result.Code == -1) {
+                            $.messager.alert('提示', result.Msg);
+                            bo = false;
+                            return false;
+                        }
+                    }
+                });
+            }
+            return bo;
+            
+        },
+        submit: function (t) {           
+            if (this.check())
+            {
+                $.ajax({
+                    async: false,
+                    type: "post",
+                    url: "/Soil/PlantFamilyOp",
+                    data:  this.getparam(),
+                    success: function (result) {
+                        if (result.Code == -1) {
+                            $.messager.alert('提示', result.Msg);
+                            return false;
+                        }
+                        else {
+                            location.reload();
+                        }
+                    }
+                });
+            }
+        }
+    }
+</script>

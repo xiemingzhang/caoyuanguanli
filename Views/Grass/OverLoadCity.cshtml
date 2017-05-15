@@ -1,0 +1,168 @@
+﻿@using GrassPlantInfo.Entity
+@{
+    ViewBag.Title = "Overloadcity"; //超载率县名称
+    T_GrassCountyStatistics entity = ViewBag.model;
+    int id = entity.StatisticsId ?? 0;
+    Layout = null;
+}
+<table id="OLC" class="easyui-datagrid" title="超载率-县名称" url="/Grass/OverLoadcitys/@id" method="post" style="width:720px;height:auto"
+       data-options="
+                iconCls: 'icon-edit',
+                singleSelect: true,
+                toolbar: '#OLCb',
+                fitColumns: true,
+                rownumbers: true,
+                onClickCell: onClickCell3,
+                onEndEdit: onEndEdit3
+            ">
+    <thead>
+        <tr>
+            <th field="Id" hidden="true">Id</th>
+            <th data-options="field:'Type',align:'left',width:120,
+                         formatter:function(value,row){
+                            return GetTypeName(row.Type);
+                        },
+                        editor:{
+                            type:'combobox',
+                            options:{
+                                valueField:'Id',
+                                textField:'Name',
+                                data:[{Id: 20,Name: '超载率小于10%'},{Id: 21,Name: '超载率10%-15%'},{Id: 22,Name: '超载率大于15%'}]
+                }
+                }">分类</th>
+            <th data-options="field:'CityName',width:140,align:'left',editor:'textbox'">县市名称</th>
+        </tr>
+    </thead>
+</table>
+<input type="hidden" id="grassoverloadcitylist" name="grassoverloadcitylist" />
+<div id="OLCb" style="height:auto">
+    <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-add',plain:true" onclick="append3()">添加</a>
+    <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-remove',plain:true" onclick="removeit3()">删除</a>
+    <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-save',plain:true" onclick="accept3()">保存</a>
+    <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-undo',plain:true" onclick="reject3()">撤销</a>
+    <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'icon-search',plain:true" onclick="getChanges3()">获取更改行</a>
+</div>
+<script type="text/javascript">
+    var editIndex3 = undefined;
+    function endEditing3() {
+        if (editIndex3 == undefined) { return true }
+        $('#OLC').datagrid('endEdit', editIndex3);
+        editIndex3 = undefined;
+        return true;
+    }
+    function onClickCell3(index, field) {
+        if (editIndex3 != index) {
+            if (endEditing3()) {
+                $('#OLC').datagrid('selectRow', index)
+                        .datagrid('beginEdit', index);
+                var ed = $('#OLC').datagrid('getEditor', { index: index, field: field });
+                if (ed) {
+                    ($(ed.target).data('textbox') ? $(ed.target).textbox('textbox') : $(ed.target)).focus();
+                    //($(ed.target).data('combobox') ? $(ed.target).combobox('textbox') : $(ed.target)).focus();
+                }
+                editIndex3 = index;
+            } else {
+                setTimeout(function () {
+                    $('#OLC').datagrid('selectRow', editIndex3);
+                }, 0);
+            }
+        }
+    }
+    function onEndEdit3(index, row) {
+        //var ed = $(this).datagrid('getEditor', {
+        //    index: index,
+        //    field: 'EnumId'
+        //});
+        //$(ed.target).focus();
+        //row.Name = $(ed.target).combobox('getText');
+        //if (isNaN($(ed.target).combobox('getValue')))
+        //{ }
+        //else
+        //{ row.EnumId = $(ed.target).combobox('getValue'); }
+    }
+    function append3() {
+        var index = $('#OLC').datagrid('getRowIndex', $('#OLC').datagrid('getSelected'));
+        if (index == -1)
+            index = 0;
+        $("#OLC").datagrid("insertRow", {
+            index: index + 1,
+            row: { oper: "<a href='javascript:append()'>+<a> <a href='javascript:removeit()'>-<a>", status: 'P' }
+        });
+    }
+    function removeit3() {
+        $.messager.confirm('系统提示', '您确定要删除吗?', function (r) {
+            if (r) {
+                if (editIndex3 == undefined) { return }
+                $('#OLC').datagrid('selectRow', editIndex3);
+                var rows = $('#OLC').datagrid('getRows');
+                var row = rows[editIndex3];
+                if (row.Id != undefined) {
+                    $.ajax({
+                        async: false,
+                        type: "post",
+                        url: "/Grass/DeleteOverLoadType",
+                        data: { Id: row.Id },
+                        success: function (result) {
+                            $('#OLC').datagrid('reload');//刷新
+                        }
+                    });
+                }
+                $('#OLC').datagrid('cancelEdit', editIndex3)
+                   .datagrid('deleteRow', editIndex3);
+                editIndex3 = undefined;
+            }
+        });
+    }
+    function accept3() {
+        if (endEditing3()) {
+            var $OLC = $('#OLC');
+            var allstring = "";
+            var allarray = new Array();
+            $("#grassoverloadcitylist").val("");
+            var rows = $OLC.datagrid('getChanges');
+            if (rows.length) {
+                var inserted = $OLC.datagrid('getChanges', "inserted");
+                var deleted = $OLC.datagrid('getChanges', "deleted");
+                var updated = $OLC.datagrid('getChanges', "updated");
+                var insertstring = "";
+                var effectRow = new Object();
+                if (inserted.length) {
+                    effectRow["inserted"] = JSON.stringify(inserted);
+                    for (var i = 0; i < inserted.length; i++) {
+                        allarray.push("," + inserted[i].Type + "," + inserted[i].CityName);
+                    }
+                }
+                if (deleted.length) {
+                    effectRow["deleted"] = JSON.stringify(deleted);
+                }
+                if (updated.length) {
+                    effectRow["updated"] = JSON.stringify(updated);
+                    for (var i = 0; i < updated.length; i++) {
+                        allarray.push(updated[i].Id + "," + updated[i].Type + "," + updated[i].CityName);
+                    }
+                }
+                allstring = allarray.join(";");
+                $("#grassoverloadcitylist").val(allstring);
+            }
+        }
+    }
+
+    function reject3() {
+        $('#OLC').datagrid('rejectChanges');
+        editIndex3 = undefined;
+    }
+    function getChanges3() {
+        var rows = $('#OLC').datagrid('getChanges');
+        alert(rows.length + ' rows are changed!');
+    }
+
+    function contains(arr, obj) {
+        var i = arr.length;
+        while (i--) {
+            if (arr[i] === obj) {
+                return true;
+            }
+        }
+        return false;
+    }
+</script>

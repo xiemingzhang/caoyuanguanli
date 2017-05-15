@@ -1,0 +1,400 @@
+﻿@model GrassPlantInfo.Entity.T_GrassCountyStatistics
+
+@{
+
+    Layout = null;
+}
+<html>
+<head title="编辑草情">
+    <link rel="stylesheet" type="text/css" href="/js/EasyUi/themes/default/easyui.css" />
+    <link rel="stylesheet" type="text/css" href="/js/themes/icon.css" />
+    <script src="/js/jquery-1.10.2.min.js"></script>
+    <script type="text/javascript" src="/js/EasyUi/jquery.easyui.min.js"></script>
+    <script src="/js/EasyUi/easyui-lang-zh_CN.js"></script>
+</head>
+<body>
+    <div class="easyui-layout" style="width:100%;height:100%;">
+        <div style="margin:10px;">
+            <h2 style="font-size:14px;">草原基本信息</h2>
+            <hr />
+            <div id="familylist"></div>
+            <div>
+                <form id="form1" method="post" action="/Grass/Edit">
+                    <div>
+                        @Html.HiddenFor(x => x.StatisticsId)
+                    </div>
+                    <p style="margin: 0px 0px 20px 0px;">修改草原基本信息</p>
+                    <table width="100%" align="center" id="tb_content">
+                        <tr>
+                            <td style="width:100px" align="right">国有草原面积：</td>
+                            <td style="width:200px">
+                                @{
+                                    @Html.TextBoxFor(x => x.StateOwnedArea,
+                                     new
+                                     {
+                                         @class = "easyui-numberbox",
+                                         @required = "true",
+                                         @style = "width:70%;height:22px",
+                                         @maxlenth = 30,
+                                         @data_require = "true"
+                                     })
+                                }
+
+                            </td>
+                            <td style="width:100px" align="right">集体草原面积：</td>
+                            <td style="width:200px">
+                                @{
+                                    @Html.TextBoxFor(x => x.CollectiveArea,
+                                     new
+                                     {
+                                         @class = "easyui-numberbox",
+                                         @required = "true",
+                                         @style = "width:70%;height:22px",
+                                         @maxlenth = 30,
+                                         @data_require = "true"
+                                     })
+                                }
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="width:100px" align="right">草原综合植被盖度：</td>
+                            <td style="width:200px">
+                                @{
+                                    @Html.TextBoxFor(x => x.VegetationCoverage,
+                                     new
+                                     {
+                                         @class = "easyui-numberbox",
+                                         @required = "true",
+                                         @style = "width:70%;height:22px",
+                                         @maxlenth = 30,
+                                         @data_require = "true"
+                                     })
+                                }
+
+                            </td>
+                            <td style="width:100px" align="right">落实承包的国有草原面积：</td>
+                            <td style="width:200px">
+                                @{
+                                    @Html.TextBoxFor(x => x.ContractStateArea,
+                                     new
+                                     {
+                                         @class = "easyui-numberbox",
+                                         @required = "true",
+                                         @style = "width:70%;height:22px",
+                                         @maxlenth = 30,
+                                         @data_require = "true"
+                                     })
+                                }
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="width:100px" align="right">落实承包的集体草原面积：</td>
+                            <td style="width:200px">
+                                @{
+                                    @Html.TextBoxFor(x => x.ContractCollectiveArea,
+                                     new
+                                     {
+                                         @class = "easyui-numberbox",
+                                         @required = "true",
+                                         @style = "width:70%;height:22px",
+                                         @maxlenth = 30,
+                                         @data_require = "true"
+                                     })
+                                }
+
+                            </td>
+                            <td style="width:100px" align="right">已纳入不动产统一确权登记的草原承包面积：</td>
+                            <td style="width:200px">
+                                @{
+                                    @Html.TextBoxFor(x => x.ImmovableArea,
+                                     new
+                                     {
+                                         @class = "easyui-numberbox",
+                                         @required = "true",
+                                         @style = "width:70%;height:22px",
+                                         @maxlenth = 30,
+                                         @data_require = "true"
+                                     })
+                                }
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="width:100px" align="right">已纳入自然资源统一确权登记的草原承包面积：</td>
+                            <td style="width:200px">
+                                @{
+                                    @Html.TextBoxFor(x => x.NaturalArea,
+                                     new
+                                     {
+                                         @class = "easyui-numberbox",
+                                         @required = "true",
+                                         @style = "width:70%;height:22px",
+                                         @maxlenth = 30,
+                                         @data_require = "true"
+                                     })
+                                }
+
+                            </td>
+                            <td style="width:100px" align="right">国有农牧场的草原面积：</td>
+                            <td style="width:200px">
+                                @{
+                                    @Html.TextBoxFor(x => x.StateRanchArea,
+                                     new
+                                     {
+                                         @class = "easyui-numberbox",
+                                         @required = "true",
+                                         @style = "width:70%;height:22px",
+                                         @maxlenth = 30,
+                                         @data_require = "true"
+                                     })
+                                }
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="width:100px" align="right">已改制国有农牧场的草原面积：</td>
+                            <td style="width:200px">
+                                @{
+                                    @Html.TextBoxFor(x => x.ReformedArea,
+                                     new
+                                     {
+                                         @class = "easyui-numberbox",
+                                         @required = "true",
+                                         @style = "width:70%;height:22px",
+                                         @maxlenth = 30,
+                                         @data_require = "true"
+                                     })
+                                }
+
+                            </td>
+                            <td style="width:100px" align="right">国有草原向集体经济组织外流转的面积：</td>
+                            <td style="width:200px">
+                                @{
+                                    @Html.TextBoxFor(x => x.ToCollectiveArea,
+                                     new
+                                     {
+                                         @class = "easyui-numberbox",
+                                         @required = "true",
+                                         @style = "width:70%;height:22px",
+                                         @maxlenth = 30,
+                                         @data_require = "true"
+                                     })
+                                }
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="width:100px" align="right">已公告基本草原面积：</td>
+                            <td style="width:200px">
+                                @{
+                                    @Html.TextBoxFor(x => x.NoticedArea,
+                                     new
+                                     {
+                                         @class = "easyui-numberbox",
+                                         @required = "true",
+                                         @style = "width:70%;height:22px",
+                                         @maxlenth = 30,
+                                         @data_require = "true"
+                                     })
+                                }
+
+                            </td>
+                            <td style="width:100px" align="right">完成技术划定但未公告的基本草原面积：</td>
+                            <td style="width:200px">
+                                @{
+                                    @Html.TextBoxFor(x => x.CompleteNotNoticeArea,
+                                     new
+                                     {
+                                         @class = "easyui-numberbox",
+                                         @required = "true",
+                                         @style = "width:70%;height:22px",
+                                         @maxlenth = 30,
+                                         @data_require = "true"
+                                     })
+                                }
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="width:100px" align="right">纳入生态保护红线草原面积：</td>
+                            <td style="width:200px">
+                                @{
+                                    @Html.TextBoxFor(x => x.EcologicalRedLineArea,
+                                     new
+                                     {
+                                         @class = "easyui-numberbox",
+                                         @required = "true",
+                                         @style = "width:70%;height:22px",
+                                         @maxlenth = 30,
+                                         @data_require = "true"
+                                     })
+                                }
+
+                            </td>
+                            <td style="width:100px" align="right">纳入各类保护地草原面积：</td>
+                            <td style="width:200px">
+                                @{
+                                    @Html.TextBoxFor(x => x.VariousProtectedArea,
+                                     new
+                                     {
+                                         @class = "easyui-numberbox",
+                                         @required = "true",
+                                         @style = "width:70%;height:22px",
+                                         @maxlenth = 30,
+                                         @data_require = "true"
+                                     })
+                                }
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="width:100px" align="right">禁止开发区内的草原面积：</td>
+                            <td style="width:200px">
+                                @{
+                                    @Html.TextBoxFor(x => x.ProhibitedZoneArea,
+                                     new
+                                     {
+                                         @class = "easyui-numberbox",
+                                         @required = "true",
+                                         @style = "width:70%;height:22px",
+                                         @maxlenth = 30,
+                                         @data_require = "true"
+                                     })
+                                }
+
+                            </td>
+                            <td style="width:100px" align="right">限制开发区内的草原面积：</td>
+                            <td style="width:200px">
+                                @{
+                                    @Html.TextBoxFor(x => x.RestrictedDevelopArea,
+                                     new
+                                     {
+                                         @class = "easyui-numberbox",
+                                         @required = "true",
+                                         @style = "width:70%;height:22px",
+                                         @maxlenth = 30,
+                                         @data_require = "true"
+                                     })
+                                }
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="width:100px" align="right">重点开发区内的草原面积：</td>
+                            <td style="width:200px">
+                                @{
+                                    @Html.TextBoxFor(x => x.KeyDevelopArea,
+                                     new
+                                     {
+                                         @class = "easyui-numberbox",
+                                         @required = "true",
+                                         @style = "width:70%;height:22px",
+                                         @maxlenth = 30,
+                                         @data_require = "true"
+                                     })
+                                }
+
+                            </td>
+                            <td style="width:100px" align="right">优化开发区内的草原面积：</td>
+                            <td style="width:200px">
+                                @{
+                                    @Html.TextBoxFor(x => x.optimizeDevelopArea,
+                                     new
+                                     {
+                                         @class = "easyui-numberbox",
+                                         @required = "true",
+                                         @style = "width:70%;height:22px",
+                                         @maxlenth = 30,
+                                         @data_require = "true"
+                                     })
+                                }
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="width:100px" align="right">年末草食家畜存栏数量：</td>
+                            <td style="width:200px">
+                                @{
+                                    @Html.TextBoxFor(x => x.LivestockHerdsNumber,
+                                     new
+                                     {
+                                         @class = "easyui-numberbox",
+                                         @required = "true",
+                                         @style = "width:70%;height:22px",
+                                         @maxlenth = 30,
+                                         @data_require = "true"
+                                     })
+                                }
+
+                            </td>
+                            <td style="width:100px" align="right">超载率小于<strong>10%</strong>的草原面积:</td>
+                            <td style="width:200px">
+                            @{
+                                @Html.TextBoxFor(x => x.OverloadLittle,
+                                     new
+                                     {
+                                         @class = "easyui-numberbox",
+                                         @required = "true",
+                                         @style = "width:70%;height:22px",
+                                         @maxlenth = 30,
+                                         @data_require = "true"
+                                     })
+                              }</td>
+                        </tr>
+                        <tr>
+                            <td style="width:100px" align="right">超载率<strong>10%-15%</strong>的草原面积</td>
+                            <td style="width:200px">
+                                @{
+                                     @Html.TextBoxFor(x => x.OverloadMiddle,
+                                     new
+                                     {
+                                         @class = "easyui-numberbox",
+                                         @required = "true",
+                                         @style = "width:70%;height:22px",
+                                         @maxlenth = 30,
+                                         @data_require = "true"
+                                     })
+                                  }
+                            </td>
+                            <td style="width:100px" align="right">超载率大于<strong>15%</strong>的草原面积</td>
+                            <td style="width:200px">
+                                @{
+                                    @Html.TextBoxFor(x => x.OverloadGreat,
+                                     new
+                                     {
+                                         @class = "easyui-numberbox",
+                                         @required = "true",
+                                         @style = "width:70%;height:22px",
+                                         @maxlenth = 30,
+                                         @data_require = "true"
+                                     })
+                                }
+                            </td>
+                        </tr>
+                        @{
+                            <tr>
+                                <td style="width:100px" colspan="2" align="center">
+                                    <a href="javascript:plantFamilyOp.submit()" class="easyui-linkbutton" iconcls="icon-save" plain="true">保存</a>
+                                </td>
+                            </tr>
+                        }
+                    </table>
+                </form>
+            </div>
+        </div>
+    </div>
+    <script>
+        var plantFamilyOp = {
+            submit: function () {
+                $("#form1").form("submit",
+                    {
+                        onSubmit: function () {
+                            var isValid = $(this).form('validate');
+                            return isValid;	// return false will stop the form submission
+                        },
+                        success: function (data) {
+                            plantFamily.list();
+                            $.messager.alert('提示', "编辑成功！", 'info');
+
+                        }
+                    })
+            }
+        }
+    </script>
+
+</body>
+</html>
+

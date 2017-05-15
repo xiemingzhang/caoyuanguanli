@@ -1,0 +1,183 @@
+﻿@using GrassPlantInfo.Entity
+@{
+    Layout = null;
+    T_GrassCountyStatistics entity = ViewBag.model;
+}
+<head title="编辑草情">
+    <title>草调详情</title>
+    @*<link rel="stylesheet" type="text/css" href="/js/EasyUi/themes/default/easyui.css" />*@
+    <link rel="stylesheet" type="text/css" href="/js/themes/icon.css" />
+    <script src="/js/jquery-1.10.2.min.js"></script>
+    <script type="text/javascript" src="/js/EasyUi/jquery.easyui.min.js"></script>
+    <script src="/js/EasyUi/easyui-lang-zh_CN.js"></script>
+</head>
+<body>
+    <div class="easyui-layout" style="width:100%;height:100%;">
+        <form id="MainModel" method="post" action="/Grass/AddModel">
+            <input type="hidden" id="staticid" name="StatisticsId" value="@entity.StatisticsId" />
+            <div id="mywantabs" class="easyui-tabs tabs-container" style="margin-top:10px;">
+                <div title="资源状况">
+                    <div style="height:470px;overflow-y:scroll;">
+                        <div style="padding:0 10px;">
+                            <h2 style="font-size:14px;">草原总面积（地块及界线）&nbsp;:&nbsp;</h2>
+                            <table>
+                                <tr>
+                                    <td width="120px">草原总面积(万亩)&nbsp;:&nbsp;</td>
+                                    <td>
+                                        <input style="width:250px" type="text" class="easyui-numberbox" name="TotalArea" value="@entity.TotalArea" data-options="required:true,data_require:true" />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td width="120px">国有草原面积(万亩)&nbsp;:&nbsp;</td>
+                                    <td>
+                                        <input style="width:250px" type="text" class="easyui-numberbox" name="StateOwnedArea" value="@entity.StateOwnedArea" data-options="required:true,data_require:true" />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td width="120px">集体草原面积(万亩)&nbsp;:&nbsp;</td>
+                                    <td>
+                                        <input style="width:250px" type="text" class="easyui-numberbox" name="CollectiveArea" value="@entity.CollectiveArea" data-options="required:true" />
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div id="teeawe" class="easyui-tabs tabs-container" style="margin-top:10px;">
+                            <div title="草原类型及面积">
+                                <div style="padding: 0 12px;">
+                                    @Html.Partial("GrassType")
+                                </div>
+                            </div>
+                            <div title="质量分级及面积">
+                                <div style="padding: 0 12px;">
+                                    @Html.Partial("GrassLevel")
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div title="生态状况">
+                    <div style="height:470px;overflow-y:scroll;">
+                        <div style="padding:0 10px;">
+                            <h2 style="font-size:14px;">草原综合植被盖度(%)&nbsp;:&nbsp;</h2>
+                            <input style="width:250px" type="text" class="easyui-numberbox" name="VegetationCoverage" value="@entity.VegetationCoverage" data-options="required:true" />
+                        </div>
+                        <div style="padding: 0 10px;">
+                            <h2 style="font-size:14px;">草原退化面积</h2>
+                            <hr />                            
+                            @Html.Partial("Deter")                        
+                        </div>
+                    </div>
+                </div>
+                <div title="利用状况">
+                    <div style="height:470px;overflow-y:scroll;">
+                        <table cellpadding="5" style="max-height:470px;margin-top:5px;">
+                            <tr>
+                                <td style="width: 320px; text-align: right; padding-right: 10px">草原承包总面积(万亩)</td>
+                                <td><input style="width:350px" type="text" class="easyui-numberbox" name="ContractArea" value="@entity.ContractArea" data-options="required:true" /></td>
+                            </tr>
+                            <tr>
+                                <td style="width: 320px; text-align: right; padding-right: 10px">落实承包的国有草原面积(万亩)</td>
+                                <td><input style="width:350px" type="text" class="easyui-numberbox" name="ContractStateArea" value="@entity.ContractStateArea" data-options="required:true" /></td>
+                            </tr>
+                            <tr>
+                                <td style="width: 320px; text-align: right; padding-right: 10px">落实承包的集体草原面积(万亩)</td>
+                                <td><input style="width:350px" type="text" class="easyui-numberbox" name="ContractCollectiveArea" value="@entity.ContractCollectiveArea" data-options="required:true" /></td>
+                            </tr>
+                            <tr>
+                                <td style="width: 320px; text-align: right; padding-right: 10px">已纳入不动产统一确权登记的草原承包面积(万亩)</td>
+                                <td><input style="width:350px" type="text" class="easyui-numberbox" name="ImmovableArea" value="@entity.ImmovableArea" data-options="required:true" /></td>
+                            </tr>
+                            <tr>
+                                <td style="width: 320px; text-align: right; padding-right: 10px">已纳入自然资源统一确权登记的草原承包面积(万亩)</td>
+                                <td><input style="width:350px" type="text" class="easyui-numberbox" name="NaturalArea" value="@entity.NaturalArea" data-options="required:true" /></td>
+                            </tr>
+                            <tr>
+                                <td style="width: 320px; text-align: right; padding-right: 10px">国有农牧场的草原面积(万亩)</td>
+                                <td><input style="width:350px" type="text" class="easyui-numberbox" name="StateRanchArea" value="@entity.StateRanchArea" data-options="required:true" /></td>
+                            </tr>
+                            <tr>
+                                <td style="width: 320px; text-align: right; padding-right: 10px">已改制国有农牧场的草原面积(万亩)</td>
+                                <td><input style="width:350px" type="text" class="easyui-numberbox" name="ReformedArea" value="@entity.ReformedArea" data-options="required:true" /></td>
+                            </tr>
+                            <tr>
+                                <td style="width: 320px; text-align: right; padding-right: 10px">国有草原向集体经济组织外流转的面积(万亩)</td>
+                                <td><input style="width:350px" type="text" class="easyui-numberbox" name="ToCollectiveArea" value="@entity.ToCollectiveArea" data-options="required:true" /></td>
+                            </tr>
+                            <tr>
+                                <td style="width: 320px; text-align: right; padding-right: 10px">已公告基本草原面积(万亩)</td>
+                                <td><input style="width:350px" type="text" class="easyui-numberbox" name="NoticedArea" value="@entity.NoticedArea" data-options="required:true" /></td>
+                            </tr>
+                            <tr>
+                                <td style="width: 320px; text-align: right; padding-right: 10px">完成技术划定但未公告的基本草原面积(万亩)</td>
+                                <td><input style="width:350px" type="text" class="easyui-numberbox" name="CompleteNotNoticeArea" value="@entity.CompleteNotNoticeArea" data-options="required:true" /></td>
+                            </tr>
+                            <tr>
+                                <td style="width: 320px; text-align: right; padding-right: 10px">纳入生态保护红线草原面积(万亩)</td>
+                                <td><input style="width:350px" type="text" class="easyui-numberbox" name="EcologicalRedLineArea" value="@entity.EcologicalRedLineArea" data-options="required:true" /></td>
+                            </tr>
+                            <tr>
+                                <td style="width: 320px; text-align: right; padding-right: 10px">纳入各类保护地草原面积(万亩)</td>
+                                <td><input style="width:350px" type="text" class="easyui-numberbox" name="VariousProtectedArea" value="@entity.VariousProtectedArea" data-options="required:true" /></td>
+                            </tr>
+                            <tr>
+                                <td style="width: 320px; text-align: right; padding-right: 10px">禁止开发区内的草原面积(万亩)</td>
+                                <td><input style="width:350px" type="text" class="easyui-numberbox" name="ProhibitedZoneArea" value="@entity.ProhibitedZoneArea" data-options="required:true" /></td>
+                            </tr>
+                            <tr>
+                                <td style="width: 320px; text-align: right; padding-right: 10px">限制开发区内的草原面积(万亩)</td>
+                                <td><input style="width:350px" type="text" class="easyui-numberbox" name="RestrictedDevelopArea" value="@entity.RestrictedDevelopArea" data-options="required:true" /></td>
+                            </tr>
+                            <tr>
+                                <td style="width: 320px; text-align: right; padding-right: 10px">重点开发区内的草原面积(万亩)</td>
+                                <td><input style="width:350px" type="text" class="easyui-numberbox" name="KeyDevelopArea" value="@entity.KeyDevelopArea" data-options="required:true" /></td>
+                            </tr>
+                            <tr>
+                                <td style="width: 320px; text-align: right; padding-right: 10px">优化开发区内的草原面积(万亩)</td>
+                                <td><input style="width:350px" type="text" class="easyui-numberbox" name="optimizeDevelopArea" value="@entity.optimizeDevelopArea" data-options="required:true" /></td>
+                            </tr>
+                            <tr>
+                                <td style="width: 320px; text-align: right; padding-right: 10px">超载率小于10%的草原面积(万亩)</td>
+                                <td><input style="width:350px" type="text" class="easyui-numberbox" name="OverloadLittle" value="@entity.OverloadLittle" data-options="required:true" /></td>
+                            </tr>
+                            <tr>
+                                <td style="width: 320px; text-align: right; padding-right: 10px">超载率10%-15%的草原面积(万亩)</td>
+                                <td><input style="width:350px" type="text" class="easyui-numberbox" name="OverloadMiddle" value="@entity.OverloadMiddle" data-options="required:true" /></td>
+                            </tr>
+                            <tr>
+                                <td style="width: 320px; text-align: right; padding-right: 10px">超载率大于15%的草原面积(万亩)</td>
+                                <td><input style="width:350px" type="text" class="easyui-numberbox" name="OverloadGreat" value="@entity.OverloadGreat" data-options="required:true" /></td>
+                            </tr>
+                            <tr>
+                                <td style="width: 320px; text-align: right; padding-right: 10px">年末草食家畜存栏数量(羊单位)</td>
+                                <td><input style="width:350px" type="text" class="easyui-numberbox" name="LivestockHerdsNumber" value="@entity.LivestockHerdsNumber" data-options="required:true" /></td>
+                            </tr>
+                        </table>
+                        <div style="padding: 0 10px; margin-bottom:10px;">
+                            <h2 style="font-size:14px;">超载率信息-县及名称</h2>
+                            <hr />
+                            @Html.Partial("OverLoadCity")
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <a id="saveALL" href="javascript:;" class="easyui-linkbutton" style="margin-left:390px;" iconcls="icon-save" plain="true">保存</a>
+        </form>
+    </div>
+    <script type="text/javascript">
+        $("#saveALL").click(function () {
+            $("#MainModel").form("submit",
+                {
+                    onSubmit: function () {
+                        return $(this).form('validate'); // return false will stop the form submission
+                    },
+                    success: function (data) {
+                        //plantFamily.list();
+                        if ("@entity.StatisticsId" == "")
+                        { $.messager.alert('提示', '添加成功！', 'info'); }
+                        else
+                        { $.messager.alert('提示', '更新成功！', 'info'); }
+                    }
+                })
+        });
+    </script>
+</body>

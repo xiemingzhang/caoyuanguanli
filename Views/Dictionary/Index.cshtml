@@ -1,0 +1,197 @@
+﻿@{
+    Layout = "~/Views/Shared/_ContentLayout.cshtml";
+}
+
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>@ViewBag.Title - 字典管理</title>
+    <link rel="stylesheet" type="text/css" href="~/js/themes/icon.css" />
+    <style type="text/css">
+        div#navigation {
+            background: white;
+            float: left;
+            width: 180px;
+        }
+
+        div#wrapper {
+            margin-left: 185px;
+        }
+
+        /*div#content {
+            margin-left: 185px;
+        }*/
+
+        /*.datagrid-wrap {
+            border-width: 0 0 1px 0;
+        }
+
+        .datagrid-toolbar {
+            background-color: #E0ECFF !important;
+        }
+
+        .datagrid-cell a {
+            color: black;
+        }
+
+        .datagrid-cell a:hover {
+                color: red;
+        }*/
+        .z-body {
+            background: #FFFFFF;
+            height: 100%;
+            border: none;
+            overflow: hidden;
+            padding: 2px;
+        }
+
+        .z-toolbar {
+            padding: 3px;
+            border: 1px solid #8DB2E3;
+            margin-bottom: 2px;
+            background-color: #E0ECFF;
+            height: 26px;
+        }
+
+            .z-toolbar a {
+                float: left;
+            }
+
+        .z-toolbar-dialog {
+            text-align: center;
+            padding: 3px;
+            border-top: 1px solid #8DB2E3;
+            background-color: #E0ECFF;
+            height: 26px;
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <div id="navigation">
+            <div title="字典类别" style="width: 180px;" class="easyui-panel" data-options="title: '字典类别', iconCls: 'icon-tree', height: $(window).height() - 10 ">
+                <ul id="dicTree" data-bind="easyuiTree:tree"></ul>
+            </div>
+        </div>
+        <div id="wrapper">
+            <div id="content">
+                <div class="z-toolbar">
+                    <a id="a_refresh" href="#" plain="true" class="easyui-linkbutton" icon="icon-refresh" onclick="refreshClick" title="刷新">刷新</a>
+                    <a id="a_add" href="#" plain="true" class="easyui-linkbutton" icon="icon-add" onclick="addClick" title="新增">新增</a>
+                    <a id="a_edit" href="#" plain="true" class="easyui-linkbutton" icon="icon-edit" donclick="editClick" title="编辑">编辑</a>
+                    <a id="a_del" href="#" plain="true" class="easyui-linkbutton" icon="icon-remove" onclick="delClick" title="删除">删除</a>
+                    <a id="a_save" href="#" plain="true" class="easyui-linkbutton" icon="icon-save" onclick="saveClick" title="保存">保存</a>
+                    <a id="a_save" href="#" plain="true" class="easyui-linkbutton" icon="icon-tree" onclick="typeClick();" title="管理类别">管理类别</a>
+                </div>
+                <table id="gridlist" class="easyui-treegrid" data-options="idField:'id',treeField:'name'">
+                    <thead>
+                        <tr>
+                            <th data-options="field:'id'" hidden="hidden"></th>
+                            <th data-options="field:'_parentId'" hidden="hidden"></th>
+                            <th data-options="field:'name'" width="230">文本</th>
+                            <th data-options="field:'value'" width="220">编码</th>
+                        </tr>
+                    </thead>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div id="dlgDicType" class="easyui-dialog" style="width:400px ;height:320px;padding:3px 3px"
+         closed="true" buttons="#dlg-buttons" modal="true">
+        <div style="width:100%">
+            <div class="z-toolbar">
+                <a id="a_refresh" href="#" plain="true" class="easyui-linkbutton" icon="icon-refresh" onclick="refreshTypeClick();" title="刷新"> 刷新</a>
+                <a id="a_add" href="#" plain="true" class="easyui-linkbutton" icon="icon-add" onclick="addTypeClick();" title="新增">新增</a>
+                <a id="a_edit" href="#" plain="true" class="easyui-linkbutton" icon="icon-edit" onclick="editTypeClick();" title="编辑">编辑</a>
+                <a id="a_del" href="#" plain="true" class="easyui-linkbutton" icon="icon-remove" onclick="delTypeClick();" title="删除">删除</a>
+                <a id="a_save" href="#" plain="true" class="easyui-linkbutton" icon="icon-save" onclick="saveTypeClick();" title="保存">保存</a>
+            </div>
+            <table id="dicTypeGrid" class="easyui-datagrid" style="height:210px">
+                <thead>
+                    <tr>
+                        <th data-options="field:'typeName'" width="150">字典类别名称</th>
+                        <th data-options="field:'typeId'" width="150">字典类别编码</th>
+                    </tr>
+                </thead>
+            </table>
+            <div style="text-align:center;margin-top:5px;">
+                <a class="easyui-linkbutton" data-options="iconCls:'icon-ok'" onclick="confirmClick()" href="javascript:void(0)">确定</a>
+                <a class="easyui-linkbutton" data-options="iconCls:'icon-cancel'" onclick="cancelClick()" href="javascript:void(0)">取消</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        $.ajax({
+            type: 'get',
+            url: '../dictionary/gettypes',
+            success: function (result) {
+                var myJson = eval('(' + result + ')');
+                $('#dicTree').tree({
+                    data: myJson,
+                    onSelect: function (node) {
+                        $.ajax({
+                            type: 'get',
+                            url: '../dictionary/gettree',
+                            success: function (data) {
+                                data = JSON.parse(data);
+                                $("#gridlist").treegrid('loadData', { rows: [] });
+                                $("#gridlist").datagrid('loadData', data);
+                            }
+                        });
+                    }
+                });
+                $('#dicTypeGrid').datagrid("loadData", myJson);
+            }
+        });
+
+        function addClick() {
+
+        }
+        function editClick() {
+
+        }
+        function delClick() {
+
+        }
+        function saveClick() {
+
+        }
+
+        function typeClick() {
+            $('#dlgDicType').dialog('open').dialog('setTitle', '管理字典类别');
+        }
+
+        var editTypeRow = undefined;
+        function addTypeClick() {
+            if (editTypeRow != undefined) {
+                $("#dicTypeGrid").datagrid('endEdit', editTypeRow);
+            }
+            else
+            {
+                debugger;
+                $("#dicTypeGrid").datagrid('insertRow',{ index: 0, row: {}});
+
+                $("#dicTypeGrid").datagrid('beginEdit', 0);
+                editTypeRow = 0;
+            }
+        }
+        function editTypeClick() {
+
+        }
+        function delTypeClick() {
+
+        }
+        function saveTypeClick() {
+
+        }
+        function confirmClick() {
+
+        }
+        function cancelClick() {
+            $('#dlgDicType').dialog('close');
+        }
+    </script>
+</body>
+</html>

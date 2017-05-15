@@ -1,0 +1,142 @@
+﻿@{
+    Layout = null;
+}
+@using GrassPlantInfo.Entity;
+@using GrassPlantInfo.Contract.DTO.Admin;
+@using GrassPlantInfo.Contract.Enum;
+@using GrassPlantInfo.CommonTools;
+@model  ProjectDto
+@{
+    var t = (EnumOperation)ViewBag.Type;
+    bool isDetail = (t == EnumOperation.DETAIL) ? true : false;
+}
+@Html.Hidden("Type", (int)t)
+@Html.HiddenFor(x => x.Id)
+
+<script>
+    var i = 0;
+    function max() {
+        MImg = MainImg.style.pixelWidth += i++;
+        if (MImg * ratio < 300) {
+            MainImg.style.pixelHeight = MImg * ratio
+            setTimeout('max()', 100)
+        }
+    }
+
+    function min() {
+        MImg = MainImg.style.pixelWidth -= i--;
+        if (MImg * ratio > 80) {
+            MainImg.style.pixelHeight = MImg * ratio
+            setTimeout('min()', 100)
+        }
+    }
+
+    function init() {
+        ratio = MainImg.height / MainImg.width;
+        MainImg.style.pixelWidth = 100;
+        MainImg.style.pixelHeight = 80;
+    }
+    onload = init;
+</script>
+
+<div style="margin-top:-10px; margin-left:-8px;">
+    <div id="toolbar" style="background: #f9f9f9; padding: 10px; height:20px; ">
+        @{
+            if (!isDetail)
+            {
+                <a href="javascript:Project.submit()" class="easyui-linkbutton" iconcls="icon-save" plain="true">保存</a>
+            }
+        }
+    </div>
+    <div id="list" style="background: #f9f9f9; height:80% ">
+        <table style="font-size: 12px; font-family: '微软雅黑'; margin: 0; padding: 0; background-color: #f3f3f3; " width="100%" align="center" id="tb_content">
+            <tr>
+                <td style="width:100px" align="right">名称：</td>
+                <td style="width:200px">
+                   @Html.TextBoxFor(n => n.Name, new { @class = "easyui-validatebox textbox", id = "ProjectName", @style = "width:192px;height:22px", @required = "true" })
+                 </td>
+            </tr>
+            <tr>
+                <td style="width:100px" align="right"> 年度：</td>
+                <td style="width:200px">
+                   @Html.TextBoxFor(n => n.Yearly, new { @class = "easyui-numberbox", @style = "width:192px;height:22px", @required = "true" })
+                </td>
+            </tr>
+            <tr>
+                <td style="width:100px" align="right"> 县：</td>
+                <td style="width:200px">
+                    @Html.TextBoxFor(n => n.Xian, new { @class = "easyui-validatebox textbox", @style = "width:192px;height:22px" })
+                </td>
+            </tr>
+            <tr>
+                <td style="width:100px" align="right"> 乡镇：</td>
+                <td style="width:200px">
+                    @Html.TextBoxFor(n => n.Xiang, new { @class = "easyui-validatebox textbox", @style = "width:192px;height:22px" })
+                </td>
+            </tr>
+
+            <tr>
+                <td style="width:100px" align="right"> 村：</td>
+                <td style="width:200px">
+                    @Html.TextBoxFor(n => n.Cun, new { @class = "easyui-validatebox textbox", @style = "width:192px;height:22px" })
+                </td>
+            </tr>
+
+            <tr>
+                <td style="width:100px" align="right"> 面积：</td>
+                <td style="width:200px">
+                    @Html.TextBoxFor(n => n.Area, new { @class = "easyui-numberbox", @style = "width:192px;height:22px", precision = "2" })
+                </td>
+            </tr>
+
+
+        </table>
+    </div>
+</div>
+
+<script>
+    var Project = {
+        pageType: $("#Type").val(),
+        getparam: function (t) {
+            var data = {
+                Id: $("#Id").val(),
+                Name: $("#ProjectName").val(),
+                Yearly: $("#Yearly").val(),
+                Xian: $("#Xian").val(),
+                Xiang: $("#Xiang").val(),
+                Cun: $("#Cun").val(),
+                Area: $("#Area").val(),
+                eo: this.pageType,
+            }
+            return data;
+        },
+        check: function () {
+            //var bo = true;
+            //if ($("#Parent").combobox("getValue") == '') {
+            //    $.messager.alert('提示', "父级必选！");
+            //    bo = false;
+            //}
+            return true;
+        },
+        submit: function () {
+            if (this.check()) {
+                $.ajax({
+                    async: false,
+                    type: "post",
+                    url: "/Project/OpProjectSave",
+                    data: this.getparam(),
+                    success: function (result) {
+                        if (result.Code == -1) {
+                            $.messager.alert('提示', result.Msg);
+                            return false;
+                        }
+                        else {
+                            $.messager.alert('提示', "保存成功。");
+                            location.reload();
+                        }
+                    }
+                });
+            }
+        }
+    }
+</script>

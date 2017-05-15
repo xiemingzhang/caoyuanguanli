@@ -1,0 +1,184 @@
+﻿@{
+    Layout = "~/Views/Shared/_ContentLayout.cshtml";
+    string isDisplaySet = "", isDisplayEdit = "", isDisplayAdd = "", isDisplayDel = "", isDisplayImport = "", isDisplayExport = "";
+    if (ViewData["btnDisplay"] != null)
+    {
+        isDisplayAdd = ((ControlButtonDto)ViewData["btnDisplay"]).AddDisplay  ? "visible" : "hidden";
+        isDisplayEdit = ((ControlButtonDto)ViewData["btnDisplay"]).EditDisplay  ? "visible" : "hidden";
+        isDisplayDel = ((ControlButtonDto)ViewData["btnDisplay"]).DelDisplay  ? "visible" : "hidden";
+        isDisplayImport = ((ControlButtonDto)ViewData["btnDisplay"]).ImportDisplay  ? "visible" : "hidden";
+        isDisplaySet = ((ControlButtonDto)ViewData["btnDisplay"]).SetDisplay  ? "visible" : "hidden";
+        isDisplayExport = ((ControlButtonDto)ViewData["btnDisplay"]).ExportDisplay  ? "visible" : "hidden";
+    }
+}
+@using GrassPlantInfo.Contract.DTO.Admin;
+
+<style>
+    .datagrid-row {
+        height: 32px;
+    }
+</style>
+
+<div style="margin-top:-10px; margin-left:-8px;">
+    <div id="titlebar" style="background: #f9f9f9; padding: 10px; ">
+        <b>当前位置：</b> 草原管理系统 > 草原植被资源 > 植被资源属名管理
+    </div>
+</div>
+<div style="margin-top:-10px; margin-left:-8px;">
+    <div id="toolbar" style="background: #f9f9f9; padding: 10px; height:20px; ">
+        植被属名： <input class="textbox" style="height:18px; width:10%;" id="Name" value="" />
+        所属植被科目:
+        <select id="FamilyList" class="easyui-combobox" style="width:130px"> </select>
+        <a href="javascript:plantGenera.list()" id="Search" class="easyui-linkbutton" plain="true" iconcls="icon-search">查询</a>
+        <a href="javascript:plantGenera.add()" id="add" style="visibility:@isDisplayAdd" class="easyui-linkbutton" plain="true" iconcls="icon-add">新增</a>
+        <a href="javascript:plantGenera.BatchImport()" id="add" style="visibility:@isDisplayAdd" class="easyui-linkbutton" plain="true" iconcls="icon-add">批量导入</a>
+    </div>
+    <div id="list">
+
+    </div>
+    <div id="w">
+    </div>
+</div>
+<script>
+
+
+    var plantGenera = {
+        getparam: function () {
+            var data = {
+                GeneraName: $.trim($("#Name").val()),
+                FamilyID: $("#FamilyList").combobox('getValue')
+            }
+            return data;
+        },
+        initSelect:function(){
+            $.ajax({
+                async: false,
+                type: "post",
+                url: "/Vegetation/GetFamilyList",
+                success: function (result) {
+                    var data = []
+                    $.each(result, function (i, o) {
+                        var item = {
+                            id:o.id,text:o.text,value:o.id
+                        }
+                        data.push(item);
+                    })
+                    $("#FamilyList").combobox("loadData", data);
+                    $("#FamilyList").combobox('setValue', "请选择");
+                }
+            });
+        },
+        list: function () {
+            $('#list').datagrid({
+                fit: false,
+                url: '/Vegetation/PlantGeneraList',
+                method: 'POST',
+                loadMsg: "加载中,请耐心等待",
+                queryParams: this.getparam(),
+                striped: true,
+                fitColumns: true,
+                singleSelect: true,
+                rownumbers: true,
+                pagination: true,
+                nowrap: false,
+                pageSize: 15,
+                pageList: [10, 15, 30, 50],
+                showFooter: true,
+                columns: [[
+                    { field: 'GeneraID', title: '植属ID', width: 50, align: 'center' },
+                    { field: 'FamilyName', title: '植被科名', width: 50, align: 'center' },
+                     { field: 'GeneraName', title: '植被属名', width: 50, align: 'center' },
+                    { field: 'GeneraFremdnessName', title: '植属英文名', width: 80, align: 'center' },
+                    {
+                        field: 'GeneraFeature', title: '属特征', width: 360, align: 'center',
+                        formatter: function (val, rec) {
+                            if (rec.GeneraFeature != null && rec.GeneraFeature.length > 70) {
+                                return rec.GeneraFeature.substring(0, 70) + "......."
+                            }
+                            return rec.GeneraFeature;
+                        }
+                    },
+                    {
+                        field: 'cz', title: '操作', width: 100, align: 'center',
+                        formatter: function (val, rec) {
+                            var html = "<a class='easyui-linkbutton btnShow' plain='true' href='javascript:plantGenera.detail(" + rec.GeneraID + ");' title='查看详情' ></a>&nbsp;&nbsp;&nbsp;";
+                            html += "<a class='easyui-linkbutton btnEdit' plain='true' style='visibility:@isDisplayEdit'  href='javascript:plantGenera.edit(" + rec.GeneraID + ");' title='编辑'></a>&nbsp;&nbsp;&nbsp;";
+                            html += "<a class='easyui-linkbutton btnDelete' plain='true' style='visibility:@isDisplayDel' href='javascript:plantGenera.del(" + rec.GeneraID + ");' title='删除'></a>";
+                            return html;
+                        }
+                    }
+                ]], onLoadSuccess: function () {
+                    $(".btnShow").linkbutton({
+                        iconCls: "icon-show"
+                    });
+                    $(".btnEdit").linkbutton({
+                        iconCls: "icon-edit"
+                    });
+                    $(".btnDelete").linkbutton({
+                        iconCls: "icon-delete"
+                    });
+                }
+            });
+            $("#list").datagrid("getPager").pagination({
+                beforePageText: '第',
+                afterPageText: '页    共 {pages} 页',
+                pageList: [10, 15, 30, 50],
+                displayMsg: "显示 {from} 到 {to} 条记录 ,  共 {total} 条记录"
+            });
+        },
+        add: function () {
+            $('#w').window({
+                width: 600,
+                height: 550,
+                modal: true,
+                href: "/Vegetation/PlantGeneraDetailIndex?eo=1",
+                title: "添加植属"
+            });
+        },
+        detail: function (fid) {
+            $('#w').window({
+                width: 450,
+                height: 320,
+                modal: true,
+                href: "/Vegetation/PlantGeneraDetailIndex?eo=4&&GeneraID=" + fid,
+                title: "查看植属信息"
+            });
+        },
+        edit: function (fid) {
+            $('#w').window({
+                width: 450,
+                height: 320,
+                modal: true,
+                href: "/Vegetation/PlantGeneraDetailIndex?eo=2&&GeneraID=" + fid,
+                title: "编辑植属信息"
+            });
+        },
+        del: function (fid) {
+            $.messager.confirm('系统提示', '您确定要删除吗?', function (r) {
+                if (r) {
+                    $.ajax({
+                        async: false,
+                        type: "post",
+                        url: "/Vegetation/PlantGeneraOp",
+                        data: { GeneraID: fid, eo: 3 },
+                        success: function (result) {
+                            if (result.Code == -1) {
+                                $.messager.alert('提示', result.Msg);
+                            }
+                            else {
+                                plantGenera.list();
+                            }
+                        }
+                    });
+                }
+            });
+        }
+    }
+
+    $(document).ready(function () {
+        plantGenera.initSelect();
+        plantGenera.list();
+    });
+
+
+</script>

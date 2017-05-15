@@ -1,0 +1,197 @@
+﻿@{
+    Layout = "~/Views/Shared/_ContentLayout.cshtml";
+}
+
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>@ViewBag.Title - 菜单管理</title>
+</head>
+
+<body>
+
+    <table id="tg" title="菜单管理" class="easyui-treegrid" style="width:700px;height:500px" data-options="method: 'post',lines: true,rownumbers: true,idField: 'FunctionID',treeField: 'FunctionName',toolbar:'#toolbar',fitColumns:'true',fit:'true'">
+        <thead>
+            <tr>
+                <th data-options="field:'FunctionID'" hidden="hidden"></th>
+                <th data-options="field:'_parentId'" hidden="hidden"></th>
+                <th data-options="field:'FunctionName'" width="230">菜单名称</th>
+                <th data-options="field:'MemCode'" width="220">菜单编号</th>
+                <th data-options="field:'OrderBy'" width="100">列表排序</th>
+                <th data-options="field:'ControllersName'" width="220">控制器名称</th>
+                <th data-options="field:'ActionName'" width="220">方法名称</th>
+                <th data-options="field:'FunctionLevel'" hidden="hidden">菜单层级</th>
+                <th data-options="field:'Operator'" width="220">编辑人</th>
+                <th data-options="field:'IsValid'" width="220">是否启用</th>
+            </tr>
+        </thead>
+    </table>
+
+    <div id="toolbar">
+        <a href="javascript:void(0)" class="easyui-linkbutton" iconcls="icon-add" plain="true" onclick="newMenu()" disabled="true" id="badd">新增</a>
+        <a href="javascript:void(0)" class="easyui-linkbutton" iconcls="icon-edit" plain="true" onclick="editMenu()" disabled="true" id="bedit">编辑</a>
+        <a href="javascript:void(0)" class="easyui-linkbutton" iconcls="icon-remove" plain="true" onclick="destroyMenu()" disabled="true" id="bdel">删除</a>
+    </div>
+
+    <div id="dlg" class="easyui-dialog" style="width:auto ;height:auto;padding:10px 20px"
+         closed="true" buttons="#dlg-buttons" modal="true">
+        <form id="fm" method="post" novalidate>
+            <div class="fitem">
+                <label>菜单名称:</label>
+                <input type="hidden" id="FunctionID" name="FunctionID">
+                <input type="hidden" id="_parentId" name="_parentId">
+                <input type="text" id="FunctionName" name="FunctionName" class="easyui-textbox" required="true">
+            </div>
+            <div class="fitem">
+                <label>控制器名称:</label>
+                <input type="text" id="ControllersName" name="ControllersName" class="easyui-textbox">
+            </div>
+            <div class="fitem">
+                <label>方法名称:</label>
+                <input type="text" id="ActionName" name="ActionName" class="easyui-textbox">
+            </div>
+            <div class="fitem">
+                <label>排序:</label>
+                <input type="text" id="OrderBy" name="OrderBy" class="easyui-textbox" validtype="integer">
+            </div>
+            <div class="fitem">
+                <label>是否启用:</label>
+                <input type="checkbox" name="IsValid" id="IsValid" style="width:auto;" />
+            </div>
+        </form>
+    </div>
+
+    <div id="dlg-buttons">
+        <a href="javascript:void(0)" class="easyui-linkbutton c6" iconcls="icon-ok" onclick="saveMenu()" style="width:90px">Save</a>
+        <a href="javascript:void(0)" class="easyui-linkbutton" iconcls="icon-cancel" onclick="javascript:$('#dlg').dialog('close')" style="width:90px">Cancel</a>
+    </div>
+
+    <script type="text/javascript">
+            var url;
+            function newMenu() {
+                var node = $('#tg').treegrid('getSelected');
+                $('#fm').form('clear');
+                $('#fm').form('reset');
+                $('#IsValid').attr("checked", true);
+                if (node.FunctionLevel == "3") {
+                    $.messager.alert("提示", "此层级菜单不能添加项目","warning");
+                }
+                else {
+                    if (node.FunctionLevel == "0" ) {
+                        $('#ControllersName').parent().hide();
+                        $('#ActionName').parent().hide();
+                    }
+                    else  {
+                        $('#ControllersName').parent().show();
+                        $('#ActionName').parent().show();
+                    }
+                    $('#dlg').dialog('open').dialog('setTitle', '添加菜单项目');
+                    url = '/Function/FunctionOP?eo=1&Id=' + node.FunctionID + "&pLevel=" + node.FunctionLevel;
+                }
+            }
+            function editMenu() {
+                var node = $('#tg').treegrid('getSelected');
+                if (node) {
+                    if (node.FunctionLevel == "0") {
+                        $('#OrderBy').parent().hide();
+                        $('#ControllersName').parent().hide();
+                        $('#ActionName').parent().hide();
+                    } else if (node.FunctionLevel == "1") {
+                        $('#OrderBy').parent().show();
+                        $('#ControllersName').parent().hide();
+                        $('#ActionName').parent().hide();
+                    } else if (node.FunctionLevel == "2" || node.FunctionLevel == "3") {
+                        $('#OrderBy').parent().show();
+                        $('#ControllersName').parent().show();
+                        $('#ActionName').parent().show();
+                    }
+                    $('#dlg').dialog('open').dialog('setTitle', '编辑菜单');
+                    $('#fm').form('load', node);
+                    if (node.IsValid == '是')
+                        $("#IsValid").prop("checked", true);
+                    else $("#IsValid").prop("checked", false);
+                    url = '/Function/FunctionOP?eo=2&Id=' + node.FunctionID  ;
+                }
+            }
+            function saveMenu() {
+                var b = $('#fm').form('validate');
+                if (!b) {
+                    $.messager.alert("提示", "验证不通过！", "error");
+                    return;
+                }
+                $.ajax({
+                    url: url,
+                    data: $('#fm').serializeArray(),
+                    dataType: "json",
+                    success: function (result) {
+                        if (result.Code==-1) {
+                            $.messager.alert('创建失败', result.Msg);
+                        } else {
+                            $('#dlg').dialog('close');
+                            $('#tg').treegrid('reload');
+                        }
+                    }
+                });
+            }
+            function destroyMenu() {
+                var node = $('#tg').treegrid('getSelected');
+                if (node) {
+                    $.messager.confirm('Confirm', '确定要删除吗?', function (r) {
+                        if (r) {
+                            $.post('/Function/DelFunction', { id: node.FunctionID, pid: node._parentId }, function (result) {
+                                if (result.okMsg) {
+                                    $('#tg').treegrid('reload');
+
+                                } else {
+                                    $.messager.alert('删除失败', result.errorMsg);
+                                }
+                            }, 'json');
+                        }
+                    });
+                }
+            }
+            $('#tg').treegrid({
+                onClickRow: function (node) {
+                    $('#badd').linkbutton("enable");
+                    $('#bedit').linkbutton("enable");
+                    if ($('#tg').treegrid('isLeaf', node.FunctionID)) {
+                        $('#bdel').linkbutton("enable");
+                    } else { $('#bdel').linkbutton("disable"); }
+                }
+            });
+            // 只向服务器发一次请求
+            $(function () {
+                $('#tg').treegrid({
+                    url: '/Function/FunctionList'
+                });
+            });
+    </script>
+
+    <style type="text/css">
+        #fm {
+            margin: 0;
+            padding: 10px 30px;
+        }
+        .ftitle {
+            font-size: 14px;
+            font-weight: bold;
+            padding: 5px 0;
+            margin-bottom: 10px;
+            border-bottom: 1px solid #ccc;
+        }
+        .fitem {
+            margin-bottom: 5px;
+        }
+        .fitem label {
+            display: inline-block;
+            width: 80px;
+        }
+        .fitem input {
+            width: 160px;
+        }
+    </style>
+
+</body>
+</html>

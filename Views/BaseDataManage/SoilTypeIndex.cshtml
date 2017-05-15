@@ -1,0 +1,181 @@
+﻿@{
+    Layout = "~/Views/Shared/_MapLayout.cshtml";
+}
+@using GrassPlantInfo.GIS;
+@using GrassPlantInfo.GIS.Common;
+@using GrassPlantInfo.Service.GIS;
+@model GrassPlantInfo.Service.GIS.SoilTypeService
+
+<script src="~/Scripts/highcharts/highcharts.js"></script>
+<script src="~/Scripts/highcharts/modules/exporting.js"></script>
+
+<style type="text/css">
+    .panel-button-left {
+        background: url(../map/images/layout_button_left.gif) no-repeat;
+        width: 16px;
+        height: 16px;
+        position: absolute;
+        z-index: 2;
+        top: 36px;
+        right: 10px;
+        margin-top: 4px;
+    }
+
+    .panel-button-right {
+        background: url(../map/images/layout_button_right.gif) no-repeat;
+        width: 16px;
+        height: 16px;
+        display: block;
+        position: absolute;
+        z-index: 2;
+        top: 36px;
+        right: 10px;
+        margin-top: 4px;
+    }
+
+    .panel-show {
+        display: block;
+    }
+
+    .panel-hide {
+        display: none;
+    }
+</style>
+
+<!--global class-->
+<script type="text/javascript">
+    var App = {
+        MapBase: null
+    };
+</script>
+
+<!--Load BaseMap and rangeland-type layer-->
+<script type="text/javascript">
+    require({ async: true }, ["../map/js/MapBase.js", "dojo/query", "esri/layers/ArcGISTiledMapServiceLayer"],
+        function (mapbase, query, ArcGISTiledMapServiceLayer) {
+
+            App.MapBase = mapbase.CreateNew();
+            App.MapBase.LoadBaseMap("@Model.BaseMap.BaseMap.ServiceAuth");
+
+            query(".rangeLandType").forEach(function (node) {
+                node.onclick = function () {
+                    if (node.checked) {
+                        var pLayer = new ArcGISTiledMapServiceLayer(node.value, { id: node.id });
+                        App.MapBase.Map.addLayer(pLayer);
+                    }
+                    else {
+                        try {
+                             var pLayer = App.MapBase.Map.getLayer(node.id);
+                             App.MapBase.Map.removeLayer(pLayer);
+                        } catch (e) {
+
+                        }
+                    }
+                };
+            });
+        });
+
+
+    require(["dojo/query", "dojo/dom-class", "dojo/domReady!"], function (query, domClass) {
+        query("#panel-button").forEach(function (node) {
+            node.onclick = function () {
+                if (domClass.contains(node, "panel-button-left")) {
+                    domClass.replace(node, "panel-button-right", "panel-button-left");
+                    domClass.replace("funcPanel", "panel-show", "panel-hide");
+                }
+                else if (domClass.contains(node, "panel-button-right")) {
+                    domClass.replace(node, "panel-button-left", "panel-button-right");
+                    domClass.replace("funcPanel", "panel-hide", "panel-show");
+                }
+            };
+        });
+    });
+</script>
+<!--chart display-->
+<script type="text/javascript">
+    $(function () {
+        var chart;
+        $(document).ready(function () {
+            $('#chart-container-pie').highcharts({
+                chart: {
+                    plotBackgroundColor: null,
+                    plotBorderWidth: null,
+                    plotShadow: false
+                },
+                title: {
+                    text: '土壤类型'
+                },
+                tooltip: {
+                    pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>'
+                },
+                plotOptions: {
+                    pie: {
+                        allowPointSelect: true,
+                        cursor: 'pointer',
+                        dataLabels: {
+                            enabled: true,
+                            color: '#000000',
+                            connectorColor: '#000000',
+                            format: '<b>{point.name}</b>: {point.percentage:.1f} %'
+                        },
+                        showInLegend: true
+                    }
+                },
+                series: [{
+                    type: 'pie',
+                    name: '土地类型',
+                    data: [
+                        ['初育土', 25451.7],
+                        ['钙层土', 1933.22],
+                          {
+                            name: '干旱土',
+                            y: 14187.7,
+                            sliced: true,
+                            selected: true
+                        },
+                        ['盐碱土', 1321.1],
+                        ['漠土', 503.24],
+                        ['人为土', 3566.56],
+                        ['半淋溶土', 3685.34],
+                        ['半水成土', 756.15],
+                        ['水成土', 9.10],
+                        ['江河', 444.12],
+                        ['湖泊，水库', 1.31],
+                        ['滨海盐城，养殖场', 4.40],
+                        ['高山土', 12.33]
+                    ]
+                }]
+            });
+        });
+    });
+</script>
+<!--functioning panel-->
+<div id="funcPanel" class="funcPanel" style="width: 520px; padding-top: 20px; height: 90%; overflow: auto">
+<div>
+    <ul>
+        @foreach (var TypeLayer in @Model.LayerList)
+        {
+            <li><input class="rangeLandType" name="ratsVermin" id="@TypeLayer.LayerName" type="checkbox" value="@TypeLayer.ServiceAuth" /><a onclick="App.MapBase.Dom.byId('@TypeLayer.LayerName').click()">@TypeLayer.LayerCnName</a></li>
+        }
+    </ul>
+</div>
+<div id="info" style="text-align:left; margin-top:10px; "><img style=" width:150px; height:313px;float:left;" src="~/map/images/soiltype.jpg" /></div>
+<div style="float: left;">
+    <table border="1" style="margin-top:5px;">
+        <caption style="">宁夏土壤类型分布面积(km<sup>2</sup>)</caption>
+        <tr><th>土壤类型</th><th>面积(km<sup>2</sup>)</th><th>比例(%)</th></tr>
+        @foreach (var r in @Model.SoilTypeAreaStatisList)
+        {
+            <tr><td>@r.SoilType</td><td>@r.Area</td><td>@String.Format("{0:F}", r.Ratio * 100)</td></tr>
+        }
+    </table>
+</div>
+
+<div>
+    <div id="chart-container-pie" style="min-width: 500px; height: 400px; max-width: 500px; margin: 50px auto 10px auto; float: left"></div>
+</div>
+</div>
+
+
+
+<div id="panel-button" class="panel-button-right"></div>

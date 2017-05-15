@@ -1,0 +1,149 @@
+﻿@{
+
+    Layout = null;
+}
+@using GrassPlantInfo.Contract.DTO.Admin;
+@using GrassPlantInfo.Contract.Enum;
+@model PlantFamilyDto
+@{
+    var t = (EnumOperation)ViewBag.Type;
+    bool isDetail = (t == EnumOperation.DETAIL)?true:false;
+}
+
+@Html.Hidden("Type",(int)t)
+@Html.HiddenFor(x => x.FamilyID)
+
+<table width="100%" align="center" id="tb_content">
+    
+    <tr>
+        <td style="width:100px" align="right"> 植被科目名称：</td>
+        <td style="width:200px">
+            @*//   <input class="textbox" id="FamilyName" style="width:80%;height:32px">*@
+
+            @{
+                if (!isDetail)
+                {
+                    @Html.TextBoxFor(x => x.FamilyName, new { @class = "easyui-validatebox textbox", @required = "true", @missingMessage = "植被科目名称", @style = "width:70%;height:22px", @maxlenth = 30, @data_require = "true" })
+                }
+                else
+                {
+                    @Html.Label(Model.FamilyName)
+                }
+            }
+
+        </td>
+    </tr>
+    <tr>
+        <td style="width:100px" align="right"> 植被科目英文名：</td>
+        <td style="width:200px">
+            @*<input class="textbox" id="FamilyFremdnessName" style="width:80%;height:32px">*@
+
+            @{
+                if (!isDetail)
+                {
+                    @Html.TextBoxFor(x => x.FamilyFremdnessName, new { @class = "textbox", @style = "width:70%;height:22px", @maxlenth = 30 })
+                }
+                else
+                {
+
+                        @Html.Label(string.IsNullOrEmpty(Model.FamilyFremdnessName) ? "" : Model.FamilyFremdnessName)
+                }
+}
+
+        </td>
+    </tr>
+    <tr>
+        <td style="width:100px" align="right"> 植被科目特征：</td>
+        <td style="width:200px">
+            @{
+                if (!isDetail)
+                { 
+                     @Html.TextAreaFor(x => x.FamilyFeature, new { @class = "textarea easyui-validatebox", @style = "width:90%;height:132px", @cols = "80", @rows = "14", @maxlenth = 2000 })
+
+                }
+                else
+                {
+
+                    @Html.Label(string.IsNullOrEmpty(Model.FamilyFeature) ? "" : Model.FamilyFeature)
+                }
+}
+
+        </td>
+    </tr>
+    @{
+
+        if (!isDetail)
+        {
+            <tr>
+                <td style="width:100px" colspan="2" align="center"><a href="javascript:plantFamilyOp.submit()" class="easyui-linkbutton" iconcls="icon-save" plain="true">保存</a></td>
+            </tr>
+        }
+    }
+
+</table>
+
+<script>
+
+    var plantFamilyOp = {
+        pageType: $("#Type").val(),
+        getparam: function (t) {
+            var data = {
+                FamilyName: $.trim($("#FamilyName").val()),
+                FamilyID: $("#FamilyID").val(),
+                FamilyFremdnessName: $.trim($("#FamilyFremdnessName").val()),
+                eo:this.pageType,
+                FamilyFeature: $("#FamilyFeature").val()
+            }
+            return data;
+        },
+        check: function () {
+            var bo = true;
+            var inputlist = $("#tb_content input[type='text']");
+            if( $.trim($("#FamilyName").val()).length == 0)
+            {
+                $.messager.alert('提示',  "植被科目名称不能为空！");
+                bo = false;
+                return false;
+            }
+            if (bo) {
+                $.ajax({
+                    async: false,
+                    type: "post",
+                    url: "/Vegetation/ValidatePlantFamilyName",
+                    data: { FamilyName: $.trim($("#FamilyName").val()), FamilyID: $("#FamilyID").val(), eo: this.pageType },
+                    success: function (result) {
+                        if (result.Code == -1) {
+                            $.messager.alert('提示', result.Msg);
+                            bo = false;
+                            return false;
+                        }
+                    }
+                });
+            }
+            return bo;
+            
+        },
+        submit: function (t) {
+           
+            if (this.check())
+            {
+
+                $.ajax({
+                    async: false,
+                    type: "post",
+                    url: "/Vegetation/PlantFamilyOp",
+                    data:  this.getparam(),
+                    success: function (result) {
+                        if (result.Code == -1) {
+                            $.messager.alert('提示', result.Msg);
+                            return false;
+                        }
+                        else {
+                            location.reload();
+                        }
+                    }
+                });
+            }
+        }
+    }
+</script>

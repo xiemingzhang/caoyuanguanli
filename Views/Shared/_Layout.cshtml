@@ -1,0 +1,92 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>宁夏草原管理平台</title>
+    <link href="/Css/default.css" rel="stylesheet" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="/js/themes/default/easyui.css" />
+    <link rel="stylesheet" type="text/css" href="/js/themes/icon.css" />
+    <script type="text/javascript" src="/js/jquery-1.4.4.min.js"></script>
+    <script type="text/javascript" src="/js/jquery.easyui.min.1.2.2.js"></script>
+    <script type="text/javascript" src='/js/outlook2.js'> </script>
+    <link rel="stylesheet" href="http://cache.amap.com/lbs/static/main1119.css"/>
+    <script src="http://cache.amap.com/lbs/static/es5.min.js"></script>
+    <script src="http://webapi.amap.com/maps?v=1.3&key=13d3c320f0267af8e549edd2ee5d6e85&&plugin=AMap.Scale,AMap.OverView,AMap.Autocomplete,AMap.PlaceSearch"></script>
+</head>
+<body class="easyui-layout" style="overflow-y: hidden" >
+
+    <noscript>
+        <div style=" position:absolute; z-index:10000; height:2046px;top:0px;left:0px; width:100%; background:white; text-align:center;">
+            <img src="/images/noscript.gif" alt='抱歉，请开启脚本支持！' />
+        </div>
+    </noscript>
+        @Html.Partial("_Top")
+        @Html.Partial("_Left")
+        @Html.Partial("_Footer")
+        <div id="mainPanle" region="center" style="background: #eee; overflow-y:hidden">
+            @RenderBody()
+        </div>
+    @Html.Partial("_Menu")
+    <script> 
+    var overviewOpen = document.getElementById('overviewOpen'); 
+        overviewOpen.checked = true;
+
+    var scale = new AMap.Scale({
+        visible: true
+    }),
+    overView = new AMap.OverView({
+        visible: false
+    }),
+    map = new AMap.Map("container", {
+        resizeEnable: true,
+        zoom:8,
+        center: [106.278179,38.46637]
+    });
+    map.addControl(scale);
+    map.addControl(overView);
+    map.setFeatures(['bg','building','point']);//多个种类要素显示
+    function toggleScale(checkbox) {
+        if (checkbox.checked) {
+            scale.show();
+        } else {
+            scale.hide();
+        }
+    }
+    function toggleOverViewShow(checkbox) {
+        
+        if (checkbox.checked) {
+            overView.show();
+            overviewOpen.disabled = false;
+            
+        } else {
+            overView.hide();
+            overviewOpen.disabled = true;
+
+        }
+    }
+    function toggleOverViewOpen(checkbox) {
+        if (checkbox.checked) {
+            overView.open();
+        }
+        else {
+            overView.close();
+        }
+    }
+    toggleOverViewOpen(overviewOpen);
+    //地图查询
+    /* var autoOptions = {
+        input: "tipinput"
+    };
+    var auto = new AMap.Autocomplete(autoOptions);
+    var placeSearch = new AMap.PlaceSearch({
+        map: map
+    });  //构造地点查询类
+    AMap.event.addListener(auto, "select", select);//注册监听，当选中某条记录时会触发
+    function select(e) {
+        placeSearch.setCity(e.poi.adcode);
+        placeSearch.search(e.poi.name);  //关键字查询查询
+    }*/
+
+</script>
+</body>
+</html>

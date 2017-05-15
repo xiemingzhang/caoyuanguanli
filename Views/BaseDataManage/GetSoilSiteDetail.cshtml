@@ -1,0 +1,142 @@
+﻿@{
+    Layout = null;
+}
+@using GrassPlantInfo.Contract.DTO.Admin;
+@using GrassPlantInfo.Entity;
+@using GrassPlantInfo.CommonTools;
+@model SoilSampleDto
+
+<script>
+    var i = 0;
+    function max() {
+        MImg = MainImg.style.pixelWidth += i++;
+        if (MImg * ratio < 300) {
+            MainImg.style.pixelHeight = MImg * ratio
+            setTimeout('max()', 100)
+        }
+    }
+
+    function min() {
+        MImg = MainImg.style.pixelWidth -= i--;
+        if (MImg * ratio > 80) {
+            MainImg.style.pixelHeight = MImg * ratio
+            setTimeout('min()', 100)
+        }
+    }
+
+    function init() {
+        ratio = MainImg.height / MainImg.width;
+        MainImg.style.pixelWidth = 100;
+        MainImg.style.pixelHeight = 80;
+    }
+    onload = init;
+</script>
+
+<table style="font-size: 12px; font-family: '微软雅黑'; margin: 0; padding: 0; background-color: #f3f3f3; " width="100%" align="center" id="tb_content">
+    <tr>
+        <td style="width: 300px" align="right"> 地点：</td>
+        <td style="width:200px">
+            @Model.SamplePlotName
+        </td>
+    </tr>
+    <tr>
+        <td style="width: 300px" align="right"> 经度：</td>
+        <td style="width:200px">
+            @Model.Longitude
+        </td>
+    </tr>
+    <tr>
+        <td style="width: 300px" align="right"> 纬度：</td>
+        <td style="width:200px">
+            @Model.Latitude
+        </td>
+    </tr>
+
+    <tr>
+        <td style="width: 300px" align="right"> 海拔：</td>
+        <td style="width:200px">
+            @Model.Altitude
+        </td>
+    </tr>
+
+    <tr>
+        <td style="width: 300px" align="right"> SOC（0-20cm)g/kg：</td>
+        <td style="width:200px">
+            @Model.Soc20
+        </td>
+    </tr>
+    <tr>
+        <td style="width: 300px" align="right"> SOC（20-40cm)g/kg：</td>
+        <td style="width:200px">
+            @Model.Soc40
+        </td>
+    </tr>
+    <tr>
+        <td style="width: 300px" align="right"> PH(0-20cm)：</td>
+        <td style="width:200px">
+            @Model.Ph20
+        </td>
+    </tr>
+
+    <tr>
+        <td style="width: 300px" align="right"> PH(20-40cm)：</td>
+        <td style="width:200px">
+            @Model.Ph40 
+        </td>
+    </tr>
+    <tr>
+        <td style="width: 300px" align="right"> AN(0-20cm)g/kg：</td>
+        <td style="width:200px">
+            @Model.An20 
+        </td>
+    </tr>
+    <tr>
+        <td style="width: 300px; " align="right"> AN(20-40cm)g/kg：</td>
+        <td style="width:200px">
+            @Model.An40 
+        </td>
+    </tr>
+
+
+    <tr>
+        <td style="width: 300px; " align="right"> AP(0-20cm)g/kg：</td>
+        <td style="width:200px">
+            @Model.Ap20 
+        </td>
+    </tr>
+    <tr>
+        <td style="width: 300px; " align="right"> AP(20-40cm)g/kg：</td>
+        <td style="width:200px">
+            @Model.Ap40 
+        </td>
+    </tr>
+
+    <tr>
+        <td style="width: 300px; " align="right"> AK(0-20cm)g/kg：</td>
+        <td style="width:200px">
+            @Model.Ak20
+        </td>
+    </tr>
+    <tr>
+        <td style="width: 300px; " align="right"> AK(20-40cm)g/kg：</td>
+        <td style="width:200px">
+            @Model.Ak40
+        </td>
+    </tr>
+    <tr>
+        <td style="width: 300px; " align="right"> 风干土含水率（0-20cm)：</td>
+        <td style="width:200px">
+            @Model.Moisture
+        </td>
+    </tr>
+
+
+
+    <tr>
+        <td style="width: 300px; " align="right"> 风干土含水率（20-40cm)：</td>
+        <td style="width:200px">
+            @Model.Moisture40
+        </td>
+    </tr>
+
+</table>

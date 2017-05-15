@@ -1,0 +1,223 @@
+﻿@using GrassPlantInfo.Entity
+@{
+    Layout = null;
+    //T_GrassCountyStatistics entity = ViewBag.model;
+    //int id = entity.StatisticsId ?? 0;
+    int id = ViewBag.StatisticsId ?? 0;
+}
+<div id="familylist1"></div><br />
+<div id="wrap">
+    <div id="Subdegent">
+        <input type="hidden" id="denId" name="Id" />
+        <p style="margin: 0px 0px 10px 0px;" id="addInfo">新增草原退化面积</p>
+        <p style="margin: 0px 0px 10px 0px;" id="uptInfo">修改草原退化面积</p>
+        <table width="100%" cellspacing="5px">
+            <tr>
+                <td width="110px">退化类型</td>
+                <td>
+                    <input id="cc" name="EnumId">
+                </td>
+            </tr>
+            <tr>
+                <td width="110px">轻度草原面积</td>
+                <td>
+                    <input type="text" class="easyui-numberbox" id="MildArea" name="MildArea" data-options="required:true" />
+                </td>
+            </tr>
+            <tr>
+                <td width="110px">中度草原面积</td>
+                <td>
+                    <input type="text" class="easyui-numberbox" id="ModerateArea" name="ModerateArea" data-options="required:true" />
+                </td>
+            </tr>
+            <tr>
+                <td width="110px">重度草原面积</td>
+                <td>
+                    <input type="text" class="easyui-numberbox" id="SevereArea" name="SevereArea" data-options="required:true" />
+                </td>
+            </tr>
+            <tr>
+                <td style="padding-left:116px" colspan="2">
+                    <a id="addBtn" href="/Grass/CreateDegradation" class="easyui-linkbutton" iconcls="icon-save" plain="true">添加</a>
+                    <a id="uptBtn" href="/Grass/EditDegradation" class="easyui-linkbutton" iconcls="icon-save" plain="true">修改</a>
+                </td>
+            </tr>
+        </table>
+    </div>
+</div>
+<script type="text/javascript">
+    var plantFamily = {
+        getparam: function () {
+            return { id: "@id" };
+        },
+        list: function () {
+            $('#familylist1').datagrid({
+                fit: false,
+                url: '/Grass/PrairieDegradation',
+                method: 'POST',
+                loadMsg: "加载中,请耐心等待",
+                queryParams: this.getparam(),
+                striped: true,
+                fitColumns: true,
+                singleSelect: true,
+                rownumbers: true,
+                pagination: false,
+                nowrap: true,
+                showFooter: true,
+                columns: [[
+                    { field: 'Id', hidden: true },
+                    { field: 'Name', title: '退化类型', width: 80, align: 'center' },
+                    { field: 'MildArea', title: '轻度草原面积', width: 100, align: 'center', resizable: false, fixed: true },
+                    { field: 'ModerateArea', title: '中度草原面积', width: 100, align: 'center', resizable: false, fixed: true },
+                    { field: 'SevereArea', title: '重度草原面积', width: 100, align: 'center', resizable: false, fixed: true },
+                    {
+                        field: 'cz', title: '操作', width: 150, align: 'center',
+                        formatter: function (val, rec) {
+                            var html = "";
+                            html += "<a class='easyui-linkbutton btnEdit' plain='true'   href='javascript:plantFamily.edit();' title='编辑'></a>&nbsp;&nbsp;&nbsp;";
+                            html += "<a class='easyui-linkbutton btnDelete' plain='true'  href='javascript:plantFamily.del();' title='删除'></a>";
+                            return html;
+                        }
+                    }
+                ]],
+                onLoadSuccess: function () {
+                    $(".btnEdit").linkbutton({
+                        iconCls: "icon-edit"
+                    });
+                    $(".btnDelete").linkbutton({
+                        iconCls: "icon-delete"
+                    });
+                }
+            });
+        },
+        edit: function () {
+            this.EditStatus();
+        },
+        del: function (fid) {
+            $.messager.confirm('系统提示', '您确定要删除吗?', function (r) {
+                var rowsel = $("#familylist1").datagrid("getSelected");
+                if (r) {
+                    $.ajax({
+                        async: false,
+                        type: "post",
+                        url: "/Grass/DeletePrairieType",
+                        data: { Id: rowsel["Id"] },
+                        success: function (result) {
+                            if (result.Code == 0) {
+                                if (rowsel["Id"] == $("#Id").val()) {
+                                    $('#ff').form("clear");
+                                    plantFamily.addStatus();
+                                    return;
+                                }
+                                plantFamily.list();
+                            }
+                        }
+                    });
+                }
+            });
+        },
+        submitAdd: function (url) {
+            debugger;
+            var isValid = $(this).form('validate');
+            alert($("#denId").val());
+            return isValid;	// return false will st
+            $.ajax({
+                url: "/ExpertCenter/SaveExpertInfoMes",
+                type: "post",
+                dataType: "json",
+                data: {
+                    "id": $("#denId").val(),
+                    "EnumId": $("#EnumId").val(),
+                    "MildArea": $("#MildArea").val(),
+                    "ModerateArea": $("#ModerateArea").val(),
+                    "SevereArea": $("#SevereArea").val(),
+                    "CountyId": "@id",
+                    "Name": $("#EnumId").val()
+                },
+                async: false,
+                success: function (data) {
+                    plantFamily.addStatus();
+                }
+            });
+        },
+        submitEdit: function (url) {
+           var isValid = $(this).form('validate');
+            alert($("#denId").val());
+            return isValid;	// return false will st
+            $.ajax({
+                url: "/ExpertCenter/SaveExpertInfoMes",
+                type: "post",
+                dataType: "json",
+                data: {
+                    "id": $("#denId").val(),
+                    "EnumId": $("#EnumId").val(),
+                    "MildArea": $("#MildArea").val(),
+                    "ModerateArea": $("#ModerateArea").val(),
+                    "SevereArea": $("#SevereArea").val(),
+                    "CountyId": "@id",
+                    "Name": $("#EnumId").val()
+                },
+                async: false,
+                success: function (data) {
+                    plantFamily.EditStatus();
+                }
+            });
+        },
+        addStatus:function()
+        {
+            $("#uptBtn,#uptInfo").hide();
+            $("#addBtn,#addInfo").show();
+            $('#Subdegent').form("clear");
+            plantFamily.list();
+            $('#cc').combobox('readonly', false);
+        },
+        EditStatus:function()
+        {
+            $("#uptBtn,#uptInfo").show();
+            $("#addBtn,#addInfo").hide();
+            var rowsel = $("#familylist1").datagrid("getSelected");
+            //alert($('#MainModel').length);
+            //alert($("[id*=Subdegent]").length);
+            $('#Subdegent').form('load', rowsel);
+            //$('#Subdegent').form('load', {
+            //    Id: rowsel.Id,
+            //    EnumId: rowsel.EnumId,
+            //    MildArea: rowsel.MildArea,
+            //    ModerateArea:rowsel.ModerateArea,
+            //    SevereArea: rowsel.SevereArea
+            //});
+            //$("#denId").val(rowsel.Id);
+            //$("#EnumId").val(rowsel.EnumId);
+            //$("#MildArea").val(rowsel.MildArea);
+            //$("#ModerateArea").val(rowsel.ModerateArea);
+            //$("#SevereArea").val(rowsel.SevereArea);
+            //$('#cc').combobox('readonly', true);
+
+        },
+        init:function()
+        {
+            $("#addBtn").click(function()
+            {
+                plantFamily.submitAdd(this.href);
+                return false;
+
+            });
+            $("#uptBtn").click(function()
+            {
+                plantFamily.submitEdit(this.href);
+                return false;
+            });
+            $('#cc').combobox({
+                url:'/Grass/DictionaryList/3',
+                valueField:'Id',
+                textField:'Name',
+                editable:false
+            });
+            plantFamily.addStatus();
+        }
+    }
+
+    $(document).ready(function () {
+        plantFamily.init();
+    });
+</script>

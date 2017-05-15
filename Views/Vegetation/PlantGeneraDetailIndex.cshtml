@@ -1,0 +1,195 @@
+﻿@{
+
+    Layout = null;
+}
+@using GrassPlantInfo.Contract.DTO.Admin;
+@using GrassPlantInfo.Contract.Enum;
+@model PlantGeneraDto
+@{
+    var t = (EnumOperation)ViewBag.Type;
+    bool isDetail = (t == EnumOperation.DETAIL) ? true : false;
+   
+}
+
+@Html.Hidden("Type", (int)t)
+@Html.HiddenFor(x => x.GeneraID)
+@Html.HiddenFor(x=>x.FamilyID)
+<table width="100%" align="center" id="tb_content">
+    <tr>
+        <td style="width:100px" align="right">所属植被科目：</td>
+        <td style="width:200px">
+            @{
+                if (!isDetail)
+                {
+                    <select id="OPFamilyList" class="easyui-combobox" style="width:130px"> </select>
+                }
+                else
+                {
+                    @Html.Label(Model.FamilyName)
+                }
+            }
+
+        </td>
+    </tr>
+    <tr>
+        <td style="width:100px" align="right">植属名称：</td>
+        <td style="width:200px">
+            @{
+                if (!isDetail)
+                {
+                    @Html.TextBoxFor(x => x.GeneraName, new {@class = "easyui-validatebox textbox", @required = "true", @missingMessage = "植被科目名称", @style = "width:90%;height:32px", @maxlenth = 30, @data_require = "true" })
+                }
+                else
+                {
+                    @Html.Label(Model.GeneraName)
+                }
+            }
+
+        </td>
+    </tr>
+    <tr>
+        <td style="width:100px" align="right">植属英文名：</td>
+        <td style="width:200px">
+            @{
+                if (!isDetail)
+                {
+                    @Html.TextBoxFor(x => x.GeneraFremdnessName, new { @class = "textbox", @style = "width:90%;height:32px", @maxlenth = 30, @data_require = "true" })
+                }
+                else
+                {
+          
+                    @Html.Label(string.IsNullOrEmpty(Model.GeneraFremdnessName) ? "" : Model.GeneraFremdnessName)
+                }
+            }
+
+        </td>
+    </tr>
+    <tr>
+        <td style="width:100px" align="right">植属特征：</td>
+        <td style="width:200px">
+            @{
+                if (!isDetail)
+                {
+                    @Html.TextAreaFor(x => x.GeneraFeature, new { @class = "textarea easyui-validatebox", @style = "width:90%;height:132px", @cols = "80", @rows = "14", @maxlenth = 2000 })
+                }
+                else
+                {
+                 @Html.Label(string.IsNullOrEmpty(Model.GeneraFeature) ? "" : Model.GeneraFeature)
+                }
+            }
+
+        </td>
+    </tr>
+    @{
+
+        if (!isDetail)
+        {
+            <tr>
+                <td style="width:100px" colspan="2" align="center"><a href="javascript:plantGeneraOp.submit()" class="easyui-linkbutton" iconcls="icon-save" plain="true">保存</a></td>
+
+            </tr>
+        }
+    }
+</table>
+<script>
+        var plantGeneraOp = {
+            pageType: $("#Type").val(),
+            getparam: function (t) {
+                var data = {
+                    GeneraName: $.trim($("#GeneraName").val()),
+                    GeneraID: $("#GeneraID").val(),
+                    GeneraFremdnessName: $.trim($("#GeneraFremdnessName").val()),
+                    eo: this.pageType,
+                    GeneraFeature: $("#GeneraFeature").val(),
+                    FamilyID: $("#OPFamilyList").combobox('getValue')
+                }
+                return data;
+            },
+            initSelect: function () {
+                $.ajax({
+                    type: "post",
+                    url: "/Vegetation/GetFamilyList",
+                    success: function (result) {
+             
+                        var data = []
+                        $.each(result, function (i, o) {
+                            var item = {
+                                id: o.id, text: o.text, value: o.id
+                            }
+                            data.push(item);
+                        })
+                        $("#OPFamilyList").combobox("loadData", data);
+                        var curfid = $("#FamilyID").val();
+                        if ($("#Type").val() == 2)
+                        {
+                            $("#OPFamilyList").combobox('setValue', $("#FamilyID").val());
+                        }
+                        
+                    }
+                });
+            },
+            check: function () {
+                var bo = true;
+                var inputlist = $("#tb_content input[type='text']");
+                var familyID = $("#OPFamilyList").combobox('getValue');
+                $.each(inputlist, function (i, o) {
+                    if ($.trim($(o).val()).length == 0) {
+                        var text = $(o).parent().prev("td").text().replace(":", "").replace("：", "").replace("*", "")
+                        $.messager.alert('提示', text + "不能为空");
+                        bo = false;
+                        return false;
+                    }
+
+                });
+                if (familyID == "0") {
+                    $.messager.alert('提示', "请选择所属植被科目！");
+                    bo = false;
+                    return false;
+                }
+                if (bo) {
+                    $.ajax({
+                        async: false,
+                        type: "post",
+                        url: "/Vegetation/ValidatePlantGeneraName",
+                        data: { GeneraName: $.trim($("#GeneraName").val()), GeneraID: $("#GeneraID").val(), eo: this.pageType },
+                        success: function (result) {
+                            if (result.Code == -1) {
+                                $.messager.alert('提示', result.Msg);
+                                bo = false;
+                                return false;
+                            }
+                        }
+                    });
+                }
+                return bo;
+            },
+            submit: function (t) {
+                if (this.check()) {
+                    $.ajax({
+                        async: false,
+                        type: "post",
+                        url: "/Vegetation/PlantGeneraOp",
+                        data: this.getparam(),
+                        success: function (result) {
+                            if (result.Code == -1) {
+                                $.messager.alert('提示', result.Msg);
+                                return false;
+                            }
+                            else {
+                                location.reload();
+                            }
+                        }
+                    });
+                }
+            }
+        }
+
+
+
+        $(document).ready(function () {
+            if (plantGeneraOp.pageType != 4)
+                plantGeneraOp.initSelect()
+        });
+
+
+</script>

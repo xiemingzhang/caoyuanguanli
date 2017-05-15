@@ -1,0 +1,584 @@
+﻿@{
+    Layout = "~/Views/Shared/_ContentLayout.cshtml";
+}
+@using GrassPlantInfo.Contract.DTO.Admin;
+@using GrassPlantInfo.Contract.Enum;
+@using GrassPlantInfo.CommonTools;
+@model BiohazardDto
+@{
+    var t = (EnumOperation)ViewBag.Type;
+    bool isDetail = (t == EnumOperation.DETAIL) ? true : false;
+}
+@Html.Hidden("Type", (int)t)
+@Html.HiddenFor(x=>x.BioId)
+@Html.HiddenFor(x => x.GenusId)
+@Html.HiddenFor(x => x.FamilyId)
+@Html.HiddenFor(x => x.OrderId)
+@Html.Hidden("imgpath", ConfigInfo.ImgPath)
+
+<link type="text/css" rel="stylesheet" href="~/Scripts/jquery.uploadify-v2.1.4/uploadify.css" />
+<script type="text/javascript" language="javascript" src="~/Scripts/jquery.uploadify-v2.1.4/jquery.uploadify.v2.1.4.js" charset="gb2312"></script>
+<script type="text/javascript" language="javascript" src="~/Scripts/jquery.uploadify-v2.1.4/swfobject.js" charset="gb2312"></script>
+
+<div style="margin-top:-10px; margin-left:-8px;">
+    <div id="titlebar" style="background: #f9f9f9; padding: 10px; ">
+        <b>当前位置：</b> 草原管理系统 > 草原生物灾害 > 生物灾害详情页面
+    </div>
+</div>
+<div style="margin-top:-10px; margin-left:-8px;">
+    <div id="toolbar" style="background: #f9f9f9; padding: 10px; height:20px; ">
+        @{
+            if (!isDetail)
+            {
+                <a href="javascript:BiohOp.submit()" class="easyui-linkbutton" iconcls="icon-save" plain="true">保存</a>
+            }
+        }
+    </div>
+    <div id="list" style="background: #f9f9f9; height:80% ">
+        <table width="90%" id="tb_content">
+            <tr>
+                <td style="width:50px" align="right"> 所属目：</td>
+                <td style="width:200px">
+                    @{
+                        if (!isDetail)
+                        {
+                            <select id="MuList" class="easyui-combobox" style="width:230px"> </select>
+                        }
+                        else
+                        {
+                            @Html.DisplayFor(n=>Model.OrderId)
+                        }
+                    }
+
+                </td>
+                <td style="width:50px" align="right"> 所属科：</td>
+                <td style="width:200px">
+                    @{
+                        if (!isDetail)
+                        {
+                            <select id="OPFamilyList" class="easyui-combobox" style="width:230px"> </select>
+                        }
+                        else
+                        {
+                            @Html.DisplayFor(n => Model.FamilyId)
+                        }
+                    }
+
+                </td>
+
+                <td style="width:50px" align="right"> 所属属：</td>
+                <td style="width:200px">
+                    @{
+                        if (!isDetail)
+                        {
+                            <select id="OPGeneraList" class="easyui-combobox" style="width:230px"> </select>
+                        }
+                        else
+                        {
+                            @Html.DisplayFor(n=>Model.GenusId)
+                        }
+                    }
+
+                </td>
+
+            </tr>
+            <tr>
+                <td style="width:50px" align="right"> 品种名称：</td>
+                <td style="width:200px">
+                    @{
+                        if (!isDetail)
+                        {
+                            @Html.TextBoxFor(x => x.BioName, new { @class = "easyui-validatebox textbox", @required = "true", @missingMessage = "植被科目名称", @style = "width:90%;height:22px",  @data_require = "true" })
+                        }
+                        else
+                        {
+                            @Html.Label(Model.BioName)
+                        }
+                    }
+
+                </td>
+                <td style="width:50px" align="right"> 品种别名：</td>
+                <td style="width:200px">
+                    @{
+                        if (!isDetail)
+                        {
+                            @Html.TextBoxFor(x => x.BioAlias, new { @class = "textbox", @style = "width:90%;height:22px"})
+                        }
+                        else
+                        {
+                            @Html.Label(string.IsNullOrEmpty(Model.BioAlias) ? "" : Model.BioAlias)
+                        }
+                    }
+
+                </td>
+
+
+            </tr>
+            <tr>
+                <td style="width:50px" align="right"> 拉丁学名：</td>
+                <td style="width:200px">
+                    @{
+                        if (!isDetail)
+                        {
+                            @Html.TextBoxFor(x => x.BioLatinName, new { @class = "textbox", @style = "width:90%;height:22px"  })
+                        }
+                        else
+                        {
+                            @Html.DisplayFor(n=>n.BioLatinName)
+                        }
+                    }
+
+                </td>
+                <td></td>
+                <td></td>
+            </tr>
+            <tr>
+                <td style="width:50px" align="right"> 形态特征：</td>
+                <td style="width:200px">
+                    @{
+                        if (!isDetail)
+                        {
+                            @Html.TextAreaFor(x => x.Feature, new { @class = "textarea easyui-validatebox", @style = "width:90%;height:90px", @cols = "80", @rows = "14", @maxlenth = 2000 })
+                        }
+                        else
+                        {
+                            @Html.DisplayFor(n=>n.Feature)
+                        }
+                    }
+
+                </td>
+                <td style="width:50px" align="right"> 生活习性：</td>
+                <td style="width:200px">
+                    @{
+                        if (!isDetail)
+                        {
+                            @Html.TextAreaFor(x => x.Habit, new { @class = "textarea easyui-validatebox", @style = "width:90%;height:90px", @cols = "80", @rows = "14", @maxlenth = 2000 })   }
+                        else
+                        {
+                            @Html.DisplayFor(n=>n.Habit)
+                        }
+                    }
+                </td>
+            </tr>
+            <tr>
+                <td style="width:50px" align="right"> 地理分布：</td>
+                <td style="width:200px">
+                    @{
+                        if (!isDetail)
+                        {
+                            @Html.TextAreaFor(x => x.Distribution, new { @class = "textarea easyui-validatebox", @style = "width:90%;height:90px", @cols = "80", @rows = "14", @maxlenth = 2000 })
+                        }
+                        else
+                        {
+                            @Html.DisplayFor(n=>n.Distribution)
+                        }
+                    }
+
+                </td>
+            </tr>
+            <tr>
+                <td style="width:50px; height:150px" align="right" id="mainImg">分布图：</td>
+                <td colspan="3">
+                    @{
+                        if (!isDetail)
+                        {
+                            <div style="padding-top:25px; width:170px; height:40px;">
+                                <input type="file" name="uploadify1" id="uploadify1" />&nbsp;&nbsp;
+                            </div>
+
+                            if (t == EnumOperation.ADD)
+                            {
+                                <div id="ShowImage1" style="width:640px;float:left;margin: 0px auto 0;"></div> <br />
+                                <div style="clear:both;font-size:1%;line-height:1%;height:0;"></div>    <br />
+                            }
+                            else if (Model.ImgList != null)
+                            {
+                                var img = Model.ImgList.SingleOrDefault(x => x.IsMain == true && x.IsDelete == false);
+                                if (img != null)
+                                {
+                                    var id = "uploadify1" + img.ImgID;
+                                    var src = ConfigInfo.ImgPath + img.ImgPath + "/" + ConfigInfo.ImgPath + img.ImgPath + "/" + string.Format(img.ImgName, EnumImgSize.SMALL);
+                                    var smallsrc = ConfigInfo.ImgPath + img.ImgPath + "/" + ConfigInfo.ImgPath + img.ImgPath + "/" + string.Format(img.ImgName, EnumImgSize.ORIGINAL);
+                                    <div id="ShowImage1" style="width:640px;float:left;margin: 0px auto 0;" class="uploadifyQueue">
+
+                                        <div id="@id" name="uploaddiv" class="uploadifyQueueItem completed">
+                                            <img width="80px" height="60px" src="@src">
+                                            <br>&nbsp;&nbsp;<a href="@smallsrc" target="_blank">预览</a>
+                                            &nbsp;&nbsp;<a href="javascript:DeleteMainImage('@img.ImgID','@img.ImgName')">删除</a>
+                                            <input type="hidden" name="filename" value="@img.ImgName">
+                                            <input type="hidden" name="filePath" value="@img.ImgPath">
+                                            <input type="hidden" name="ismain" id="mainImg1" value="1">
+                                        </div>
+                                    </div> <br>
+                                }
+                                else
+                                {
+                                    <div id="ShowImage1" style="width:640px;float:left;margin: 0px auto 0;"></div> <br />
+                                    <div style="clear:both;font-size:1%;line-height:1%;height:0;"></div>    <br />
+                                }
+                            }
+                        }
+                        else if (Model.ImgList!=null)
+                        {
+                            var img = Model.ImgList.SingleOrDefault(x => x.IsMain == true && x.IsDelete == false);
+                            if (img != null)
+                            {
+                                var src = ConfigInfo.ImgPath + img.ImgPath + "/" + img.ImgName;
+                                <img width="80px" height="60px" src="@src" />
+                            }
+                        }
+                        else
+                        { 
+                             <img width="80px" height="60px" src="" />
+                        }
+                    }
+                </td>
+            </tr>
+            <tr>
+                <td style="width:50px; height:211px" align="right" id="nMainImg">形态特征图：</td>
+                <td colspan="3">
+                    @{
+                        if (!isDetail)
+                        {
+                            <div style="padding-top:25px; width:170px; height:40px;">
+                                <input type="file" name="uploadify" id="uploadify" />&nbsp;&nbsp;
+                            </div>
+
+                            if (t == EnumOperation.ADD)
+                            {
+                                <div id="ShowImage" style="width:640px;float:left;margin: 0px auto 0;"></div> <br />
+                                <div style="clear:both;font-size:1%;line-height:1%;height:0;"></div>    <br />
+                            }
+
+                            else 
+                            {
+                                if (Model.ImgList != null)
+                                {
+                                    <div id="ShowImage" style="width:640px;float:left;margin: 0px auto 0;" class="uploadifyQueue">
+                                        @{ foreach (var img in Model.ImgList)
+                                         {
+                                             if (img.IsMain == false)
+                                             {
+                                                 var id = "uploadify" + img.ImgID;
+                                                 var src = ConfigInfo.ImgPath + img.ImgPath + "/" + string.Format(img.ImgName, EnumImgSize.SMALL);
+                                                 var smallsrc = ConfigInfo.ImgPath + img.ImgPath + "/" + ConfigInfo.ImgPath + img.ImgPath + "/" + string.Format(img.ImgName, EnumImgSize.ORIGINAL);
+                                                <div id="@id" name="uploaddiv" class="uploadifyQueueItem completed">
+                                                    <img width="80px" height="60px" src="@src">
+                                                    <br>&nbsp;&nbsp;<a href="@smallsrc" target="_blank">预览</a>
+                                                    &nbsp;&nbsp;
+                                                    <a href="javascript:DeleteImage('@img.ImgID','@img.ImgName')">删除</a>
+                                                    <input type="hidden" name="filename" value="@img.ImgName">
+                                                    <input type="hidden" name="filePath" value="@img.ImgPath">
+                                                    <input type="hidden" name="ismain" value="0">
+                                                </div>
+
+                                             }
+                                         }
+                                        }
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div id="ShowImage" style="width:640px;float:left;margin: 0px auto 0;"></div> <br />
+                                    <div style="clear:both;font-size:1%;line-height:1%;height:0;"></div>    <br />
+                                }
+                            }
+                        }
+                        else
+                        {
+                            if (Model.ImgList != null)
+                            {
+                                foreach (var img in Model.ImgList)
+                                {
+                                    if (img.IsMain == false)
+                                    {
+                                        var src = ConfigInfo.ImgPath + img.ImgPath + "/" + string.Format(img.ImgName, EnumImgSize.SMALL);
+                                        <img width="80px" height="60px" src="@src" />
+                                    }
+
+                                }
+
+                            }
+
+                        }
+                    }
+
+                </td>
+            </tr>
+
+        </table>
+    </div>
+
+</div>
+
+<script>
+    var BiohOp = {
+        pageType: $("#Type").val(),
+        getparam: function (t) {
+            var ImgArr = []
+            var imgList = $("div[name='uploaddiv']");
+            if (imgList.length > 0) {
+                $.each(imgList, function (i, o) {
+                    var img = {
+                        ImgName: $(o).find("input[name='filename']").val(),
+                        ImgPath: $(o).find("input[name='filePath']").val(),
+                        IsMain: $(o).find("input[name='ismain']").val() == "1" ? 1 : 0,
+                    }
+                    ImgArr.push(img);
+                });
+            }
+            var data = {
+                OrderId: $("#MuList").combobox('getValue'),
+                FamilyId: $("#OPFamilyList").combobox('getValue'),
+                GenusId: $("#OPGeneraList").combobox('getValue'),
+                BioId: $("#BioId").val() == "" ? 0 : $("#BioId").val(),
+                BioName: $.trim($("#BioName").val()),
+                BioLatinName: $.trim($("#BioLatinName").val()),
+                Feature: $.trim($("#Feature").val()),
+                Habit: $.trim($("#Habit").val()),
+                Distribution: $.trim($("#Distribution").val()),
+                ImgList: ImgArr
+            }
+            return data;
+        },
+        //initGeneraSelect: function () {
+        //    if ($("#OPFamilyList").combobox('getValue') != 0) {
+        //        $.ajax({
+        //            type: "post",
+        //            url: "/Vegetation/GetGeneraListByFamilyId",
+        //            data: { FamilyID: $("#OPFamilyList").combobox('getValue') },
+        //            success: function (result) {
+        //                var data = []
+        //                $.each(result, function (i, o) {
+        //                    var item = {
+        //                        id: o.id, text: o.text, value: o.id
+        //                    }
+        //                    data.push(item);
+        //                })
+        //                $("#OPGeneraList").combobox("loadData", data);
+        //                $("#OPGeneraList").combobox('setValue', $("#GeneraID").val());
+        //            }
+        //        });
+        //    }
+        //    else {
+        //        var data = []
+        //        var item = {
+        //            id: 0, text: "请选择", value: 0
+        //        }
+        //        data.push(item);
+        //        $("#OPGeneraList").combobox("loadData", data);
+        //        $("#OPGeneraList").combobox('setValue', 0);
+        //    }
+
+        //},
+        //initFamilySelect: function () {
+        //    $.ajax({
+        //        type: "post",
+        //        url: "/Biohazard/GetFamilyList",
+        //        success: function (result) {
+        //            var data = []
+        //            $.each(result, function (i, o) {
+        //                var item = {
+        //                    id: o.id, text: o.text, value: o.id
+        //                }
+        //                data.push(item);
+        //            });
+        //            $("#OPFamilyList").combobox("loadData", data);
+        //            if ($("#Type").val() == 2) {
+        //                $("#OPFamilyList").combobox('setValue', $("#FamilyID").val());
+        //                //this.initGeneraSelect();
+        //            }
+        //            else {
+        //                $("#OPFamilyList").combobox('setValue', 0);
+        //                var data = []
+        //                var item = {
+        //                    id: 0, text: "请选择", value: 0
+        //                }
+        //                data.push(item);
+        //                $("#OPGeneraList").combobox("loadData", data);
+        //                $("#OPGeneraList").combobox('setValue', 0);
+
+        //            }
+
+        //        }
+        //    });
+        //},
+        check: function () {
+            var bo = true;
+            //var inputlist = $("#tb_content input[type='text']");
+            //var familyID = $("#OPFamilyList").combobox('getValue');
+            //var generaID = $("#OPGeneraList").combobox('getValue');
+            //var BiohName = $.trim($("#BiohName").val());
+            //var imgList = $("div[name='uploaddiv']");
+            //if (imgList != null && imgList.length > 0 && $("#mainImg1").val() == null) {
+            //    $.messager.alert('提示', "请选择主图！");
+            //    bo = false;
+            //    return false;
+            //}
+            //if (familyID == "0") {
+            //    $.messager.alert('提示', "请选择所属植被科目！");
+            //    bo = false;
+            //    return false;
+            //}
+            //if (generaID == "0") {
+            //    $.messager.alert('提示', "请选择植被属名！");
+            //    bo = false;
+            //    return false;
+            //}
+            //if (BiohName == "") {
+            //    $.messager.alert('提示', "请输入植被名称！");
+            //    bo = false;
+            //    return false;
+            //}
+            //if (bo) {
+            //    $.ajax({
+            //        async: false,
+            //        type: "post",
+            //        url: "/Vegetation/ValidateBiohName",
+            //        data: { BiohName: BiohName, PalntID: $("#PalntID").val(), eo: this.pageType },
+            //        success: function (result) {
+            //            if (result.Code == -1) {
+            //                $.messager.alert('提示', result.Msg);
+            //                bo = false;
+            //                return false;
+            //            }
+            //        }
+            //    });
+            //}
+            return bo;
+        },
+        submit: function (t) {
+            if (this.check()) {
+                $.ajax({
+                    async: false,
+                    type: "post",
+                    url: "/Biohazard/BiohazardOp",
+                    data: { jsondata: JSON.stringify(this.getparam()), eo: this.pageType },
+                    success: function (result) {
+                        if (result.Code == -1) {
+                            $.messager.alert('提示', result.Msg);
+                            return false;
+                        }
+                        else {
+                            $.messager.alert('提示', "保存成功。");
+                            location.reload();
+                            //if ($("#Type").val() == 2) {
+                            //    parent.$('#tabs').tabs('close', "编辑植被");
+                            //}
+                            //else {
+                            //    parent.$('#tabs').tabs('close', "添加植被");
+                            //}
+                        }
+                    }
+                });
+            }
+        }
+    }
+    $(document).ready(function () {
+        if (BiohOp.pageType != 4) {
+            $("#OPFamilyList").combobox({
+                onChange: function (n, o) {
+                    $("#OPGeneraList").combobox('clear');
+                    BiohOp.initGeneraSelect();
+                }
+            });
+            BiohOp.initFamilySelect();
+        }
+
+    });
+    function DeleteImage(q, n) {
+        $.ajax({
+            type: "POST",
+            url: "/Vegetation/DelImg?q=" + q + "&n=" + n,
+            success: function (data) {
+                if (data.Code != "0") {
+                    jQuery("#uploadify").uploadifyCancel(q);
+                }
+                else {
+                    $.messager.alert('提示', data.Msg);
+                }
+            }
+        });
+    }
+
+    function format(message) {
+        if (!message) return null;
+        var ss = message.split(/\{\d+?\}/);
+        for (var i = 0; i < ss.length; i++) {
+            if (!arguments[i + 1]) break;
+            ss[i] += arguments[i + 1];
+        }
+        return ss.join("");
+    }
+
+    function DeleteMainImage(q, n) {
+        $.ajax({
+            type: "POST",
+            url: "/Vegetation/DelImg?q=" + q + "&n=" + n,
+            success: function (data) {
+                if (data.Code != "0") {
+                    jQuery("#uploadify1").uploadifyCancel(q);
+                }
+                else {
+                    $.messager.alert('提示', data.Msg);
+                }
+            }
+        });
+    }
+    $("#uploadify").uploadify({
+        'uploader': '/Scripts/jquery.uploadify-v2.1.4/uploadify.swf',
+        'script': '/Vegetation/UpLoadBiohImg',
+        'cancelImg': '/Scripts/jquery.uploadify-v2.1.4/cancel.png',
+        'folder': 'UploadFile',
+        'fileObjName': 'uploadify',//对应后台参数名称
+        'sizeLimit': 1024 * 1024 * 10,
+        'queueSizeLimit': 50,
+        'fileDesc': '只允许上传bmp,gif,jpg,jpeg图片',
+        'fileExt': '*.bmp;*.gif;*.jpg;*.jpeg',
+        'method': 'Post',
+        'queueID': 'ShowImage',
+        'buttonImg': '/Images/upimg.png',
+        'wmode': 'transparent',
+        'auto': true,
+        'multi': true,
+        'onComplete': function (e, q, f, data, d) {
+            //debugger;
+            var result = eval('(' + data + ')');
+            var imgpathurl = $("#imgpath").val() + result.path + '/' + format(result.filename, "2");
+            var Preview = "&nbsp;&nbsp;<a href='" + $("#imgpath").val() + result.path + '/' + format(result.filename, "1") + "'  target=\"_blank\">预览</a>&nbsp;&nbsp;";
+            var Delete = "<a href=\"javascript:DeleteImage('" + q + "','" + result.path + '/' + result.filename + "')\">删除</a>";
+            var Image = "<img width='80px' height='60px' src='" + imgpathurl + "'/><br/>";
+            var hiden = "<input type='hidden' name ='filename' value='" + result.filename + "'><input type='hidden' name ='filePath' value='" + result.path + "'>";
+            var IsMain = "<input type='hidden' name ='ismain' value='0'>";
+            $("#uploadify" + q).html(Image + Preview + Delete + hiden + IsMain);
+        }
+    });
+    $("#uploadify1").uploadify({
+        'uploader': '/Scripts/jquery.uploadify-v2.1.4/uploadify.swf',
+        'script': '/Vegetation/UpLoadBiohImg',
+        'cancelImg': '/Scripts/jquery.uploadify-v2.1.4/cancel.png',
+        'folder': 'UploadFile',
+        'fileObjName': 'uploadify1',//对应后台参数名称
+        'sizeLimit': 1024 * 1024 * 10,
+        'queueSizeLimit': 50,
+        'fileDesc': '只允许上传bmp,gif,jpg,jpeg图片',
+        'fileExt': '*.bmp;*.gif;*.jpg;*.jpeg',
+        'method': 'Post',
+        'queueID': 'ShowImage1',
+        'buttonImg': '/Images/upimg.png', 
+        'wmode': 'transparent',
+        'auto': true,
+        'multi': false,
+        'onComplete': function (e, q, f, data, d) {
+            //debugger;
+            var result = eval('(' + data + ')');
+            var imgpathurl = $("#imgpath").val() + result.path + '/' + format(result.filename, "2");
+            var Preview = "&nbsp;&nbsp;<a href='" + $("#imgpath").val() + result.path + '/' + format(result.filename, "1") + "'  target=\"_blank\">预览</a>&nbsp;&nbsp;";
+            var Delete = "<a href=\"javascript:DeleteMainImage('" + q + "','" + result.path + '/' + result.filename + "')\">删除</a>";
+            var Image = "<img width='80px' height='60px' src='" + imgpathurl + "'/><br/>";
+            var hiden = "<input type='hidden' name ='filename' value='" + result.filename + "'><input type='hidden' name ='filePath' value='" + result.path + "'>";
+            var IsMain = "<input type='hidden' name ='ismain' id='mainImg1' value='1'>";
+            $("#uploadify1" + q).html(Image + Preview + Delete + hiden + IsMain);
+        }
+    });
+</script>

@@ -1,0 +1,164 @@
+﻿@{
+    Layout = "~/Views/Shared/_ContentLayout.cshtml";
+}
+
+
+<style>
+    .datagrid-row {
+        height: 32px;
+    }
+</style>
+
+<div style="margin-top:-10px; margin-left:-8px;">
+    <div id="titlebar" style="background: #f9f9f9; padding: 10px; ">
+        <b>当前位置：</b> 草原管理系统 > 土地资源 > 土类名称管理
+    </div>
+</div>
+<div style="margin-top:-10px; margin-left:-8px;">
+    <div id="toolbar" style="background: #f9f9f9; padding: 10px; height:20px; ">
+        土类名： <input class="textbox" style="height:18px; width:10%;" id="Name" value="" />
+        所属土纲:
+        <select id="FamilyList" class="easyui-combobox" style="width:130px"> </select>
+        <a href="javascript:plantGenera.list()" id="Search" class="easyui-linkbutton" plain="true" iconcls="icon-search">查询</a>
+        <a href="javascript:plantGenera.add()" id="add" class="easyui-linkbutton" plain="true" iconcls="icon-add">新增</a>
+    </div>
+    <div id="list">
+
+    </div>
+    <div id="w">
+    </div>
+</div>
+<script>
+
+
+    var plantGenera = {
+        getparam: function () {
+            var data = {
+                SoilGroupName: $.trim($("#Name").val()),
+                SoilOrderID: $("#FamilyList").combobox('getValue')
+            }
+            return data;
+        },
+        initSelect:function(){
+            $.ajax({
+                async: false,
+                type: "post",
+                url: "/Soil/GetFamilyList",
+                success: function (result) {
+                    var data = []
+                    $.each(result, function (i, o) {
+                        var item = {
+                            id:o.id,text:o.text,value:o.id
+                        }
+                        data.push(item);
+                    })
+                    $("#FamilyList").combobox("loadData", data);
+                    $("#FamilyList").combobox('setValue', "请选择");
+                }
+            });
+        },
+        list: function () {
+            $('#list').datagrid({
+                fit: false,
+                url: '/Soil/PlantGeneraList',
+                method: 'POST',
+                loadMsg: "加载中,请耐心等待",
+                queryParams: this.getparam(),
+                striped: true,
+                fitColumns: true,
+                singleSelect: true,
+                rownumbers: true,
+                pagination: true,
+                nowrap: false,
+                pageSize: 15,
+                pageList: [10, 15, 30, 50],
+                showFooter: true,
+                columns: [[
+                    { field: 'SoilGroupID', title: '土类ID', width: 50, align: 'center' },
+                    { field: 'SoilOrderName', title: '土纲名', width: 50, align: 'center' },
+                     { field: 'SoilGroupName', title: '土类名', width: 50, align: 'center' },
+                    { field: 'SoilGroupCode', title: '土类代码', width: 80, align: 'center' },
+                     
+                    {
+                        field: 'cz', title: '操作', width: 100, align: 'center',
+                        formatter: function (val, rec) {
+                            var html = "<a class='easyui-linkbutton btnEdit' plain='true'  href='javascript:plantGenera.edit(" + rec.SoilGroupID + ");' title='编辑'></a>&nbsp;&nbsp;&nbsp;";
+                            html += "<a class='easyui-linkbutton btnDelete' plain='true' href='javascript:plantGenera.del(" + rec.SoilGroupID + ");' title='删除'></a>";
+                            return html;
+                        }
+                    }
+                ]], onLoadSuccess: function () {
+                    $(".btnShow").linkbutton({
+                        iconCls: "icon-show"
+                    });
+                    $(".btnEdit").linkbutton({
+                        iconCls: "icon-edit"
+                    });
+                    $(".btnDelete").linkbutton({
+                        iconCls: "icon-delete"
+                    });
+                }
+            });
+            $("#list").datagrid("getPager").pagination({
+                beforePageText: '第',
+                afterPageText: '页    共 {pages} 页',
+                pageList: [10, 15, 30, 50],
+                displayMsg: "显示 {from} 到 {to} 条记录 ,  共 {total} 条记录"
+            });
+        },
+        add: function () {
+            $('#w').window({
+                width: 450,
+                height: 320,
+                modal: true,
+                href: "/Soil/SoilGroupDetailIndex?eo=1",
+                title: "添加土类"
+            });
+        },
+        detail: function (fid) {
+            $('#w').window({
+                width: 450,
+                height: 320,
+                modal: true,
+                href: "/Soil/SoilGroupDetailIndex?eo=4&&GeneraID=" + fid,
+                title: "查看土类信息"
+            });
+        },
+        edit: function (fid) {           
+            $('#w').window({
+                width: 450,
+                height: 320,
+                modal: true,
+                href: "/Soil/SoilGroupDetailIndex?eo=2&&SoilGroupID=" + fid,
+                title: "编辑土类信息"
+            });
+        },
+        del: function (fid) {
+            $.messager.confirm('系统提示', '您确定要删除吗?', function (r) {
+                if (r) {
+                    $.ajax({
+                        async: false,
+                        type: "post",
+                        url: "/Soil/PlantGeneraOp",
+                        data: { SoilGroupID: fid, eo: 3 },
+                        success: function (result) {
+                            if (result.Code == -1) {
+                                $.messager.alert('提示', result.Msg);
+                            }
+                            else {
+                                plantGenera.list();
+                            }
+                        }
+                    });
+                }
+            });
+        }
+    }
+
+    $(document).ready(function () {
+        plantGenera.initSelect();
+        plantGenera.list();
+    });
+
+
+</script>

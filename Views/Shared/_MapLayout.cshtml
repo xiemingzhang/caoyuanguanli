@@ -1,0 +1,20 @@
+﻿@{
+    Layout = "~/Views/Shared/_ContentLayout.cshtml";
+}
+<!DOCTYPE html>
+<html>
+<head>
+    @*<script type="text/javascript" src="http://115.28.244.170:5566/arcgis_js_api_314/library/3.14/3.14/init.js"></script>*@
+    <script type="text/javascript" src="http://115.28.244.170:5566/arcgis_js_api_314/library/3.14/3.14/init.js"></script>
+    <link rel="stylesheet" type="text/css" href="http://115.28.244.170:5566/arcgis_js_api_314/library/3.14/3.14/dijit/themes/claro/claro.css" />
+    <link rel="stylesheet" type="text/css" href="http://115.28.244.170:5566/arcgis_js_api_314/library/3.14/3.14/esri/css/esri.css" />
+
+    <link href="~/map/css/MapCss.css" rel="stylesheet" />
+    <link href="~/map/css/ModuleStyle.css" rel="stylesheet" />
+
+    @*<script type="text/javascript" src="~/map/js/MapLayout.js"></script>*@
+</head>
+<body class="claro">
+    @RenderBody()
+</body>
+</html>

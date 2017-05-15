@@ -1,0 +1,171 @@
+﻿@{
+    Layout = null;
+}
+@using GrassPlantInfo.Contract.DTO.Admin;
+@using GrassPlantInfo.Entity;
+@using GrassPlantInfo.CommonTools;
+@model T_SamplePlot
+
+    <script>
+        var i = 0;
+        function max() {
+            MImg = MainImg.style.pixelWidth += i++;
+            if (MImg * ratio < 300)
+            {
+                MainImg.style.pixelHeight = MImg * ratio
+                setTimeout('max()', 100)
+            }        
+        }
+
+        function min() {
+            MImg = MainImg.style.pixelWidth -= i--;
+            if (MImg * ratio > 80)
+            {
+                MainImg.style.pixelHeight = MImg * ratio
+                setTimeout('min()', 100)
+            }    
+        }
+
+        function init() {
+            ratio = MainImg.height / MainImg.width;
+            MainImg.style.pixelWidth = 100;
+            MainImg.style.pixelHeight = 80;
+        }
+        onload = init;
+    </script>
+
+<table style="font-size: 12px; font-family: '微软雅黑'; margin: 0; padding: 0; background-color: #f3f3f3; " width="100%" align="center" id="tb_content">
+    <tr>
+        <td style="width:100px" align="right"> 景观照片：</td>
+        <td style="width:200px"> <img id=MainImg onmouseover=max() onmouseout=min() src="~/Images/jingguanzhaop.png" width="100" height="80" /></td>
+    </tr>
+    
+     <tr>
+        <td style="width:100px" align="right"> 调查时间：</td>
+        <td style="width:200px">
+            @Model.InvestigationTime
+        </td>
+    </tr>
+    <tr>
+        <td style="width:100px" align="right"> 调查人：</td>
+        <td style="width:200px">
+            @Model.Investigationtor
+        </td>
+    </tr>
+
+    <tr>
+        <td style="width:100px" align="right"> 样地号：</td>
+        <td style="width:200px">
+            @Model.SamplePlotID
+        </td>
+    </tr>
+
+    <tr>
+        <td style="width:100px" align="right"> 年份：</td>
+        <td style="width:200px"> @Model.Year</td>
+    </tr>
+    <tr>
+        <td style="width:100px" align="right"> 省：</td>
+        <td style="width:200px"> @Model.Province</td>
+    </tr>
+    <tr>
+        <td style="width:100px" align="right"> 县：</td>
+        <td style="width:200px"> @Model.County</td>
+    </tr>
+
+    <tr>
+        <td style="width:100px" align="right"> 乡镇：</td>
+        <td style="width:200px"> @Model.Township</td>
+    </tr>
+    <tr>
+        <td style="width:100px" align="right"> 草地类：</td>
+        <td style="width:200px"> @Model.GrasslandType</td>
+    </tr>
+    <tr>
+        <td style="width:100px" align="right"> 草地型：</td>
+        <td style="width:200px"> @Model.GrasslandStyle</td>
+    </tr>
+
+
+    <tr>
+        <td style="width:100px" align="right"> 退牧还草工程建成时间：</td>
+        <td style="width:200px"> @Model.BackUpProTime</td>
+    </tr>
+    <tr>
+        <td style="width:100px" align="right"> 灌木和高大草本：</td>
+        <td style="width:200px"> @Model.BushAndBigPlant</td>
+    </tr>
+
+    <tr>
+        <td style="width:100px" align="right"> 地形地貌：</td>
+        <td style="width:200px"> @Model.LandFeatures</td>
+    </tr>
+    <tr>
+        <td style="width:100px" align="right"> 坡向：</td>
+        <td style="width:200px"> @Model.Slope</td>
+    </tr>
+    <tr>
+        <td style="width:100px" align="right"> 坡位：</td>
+        <td style="width:200px"> @Model.SlopePosition</td>
+    </tr>
+
+
+
+    <tr>
+        <td style="width:100px" align="right"> 土壤质地：</td>
+        <td style="width:200px"> @Model.SoilTtexture</td>
+    </tr>
+    <tr>
+        <td style="width:100px" align="right"> 枯落物：</td>
+        <td style="width:200px"> @Model.LitterFall</td>
+    </tr>
+    <tr>
+        <td style="width:100px" align="right"> 覆沙：</td>
+        <td style="width:200px"> @Model.Sand</td>
+    </tr>
+
+    <tr>
+        <td style="width:100px" align="right"> 地表侵蚀：</td>
+        <td style="width:200px"> @Model.Surfaceerosion</td>
+    </tr>
+    <tr>
+        <td style="width:100px" align="right"> 侵蚀原因：</td>
+        <td style="width:200px"> @Model.ErosionCause</td>
+    </tr>
+    <tr>
+        <td style="width:100px" align="right"> 盐碱斑：</td>
+        <td style="width:200px"> @Model.Salinealkalispot</td>
+    </tr>
+
+
+    <tr>
+        <td style="width:100px" align="right"> 裸地面积比例：</td>
+        <td style="width:200px"> @Model.BareAreapercent</td>
+    </tr>
+    <tr>
+        <td style="width:100px" align="right"> 地表季节性积水：</td>
+        <td style="width:200px"> @Model.SeasonalWater</td>
+    </tr>
+
+    <tr>
+        <td style="width:100px" align="right"> 年均降水量（毫米）：</td>
+        <td style="width:200px"> @Model.AvgRain</td>
+    </tr>
+    <tr>
+        <td style="width:100px" align="right"> 利用方式：</td>
+        <td style="width:200px"> @Model.UseWay</td>
+    </tr>
+    <tr>
+        <td style="width:100px" align="right"> 利用状况：</td>
+        <td style="width:200px"> @Model.Usestatus</td>
+    </tr>
+    <tr>
+        <td style="width:100px" align="right"> 综合评价：</td>
+        <td style="width:200px"> @Model.ComprehensiveEvaluation</td>
+    </tr>
+    <tr>
+        <td style="width:100px" align="right"> 样方类型：</td>
+        <td style="width:200px"> @Model.SampleType</td>
+    </tr>
+
+</table>

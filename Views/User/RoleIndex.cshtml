@@ -1,0 +1,126 @@
+﻿@{
+    Layout = "~/Views/Shared/_ContentLayout.cshtml";
+}
+
+<div style="margin-top:-10px; margin-left:-8px;">
+    <div id="titlebar" style="background: #f9f9f9; padding: 10px; ">
+        <b>当前位置：</b> 用户管理 > 角色管理
+    </div>
+</div>
+<div style="margin-top:-10px; margin-left:-8px;">
+    <div id="toolbar" style="background: #f9f9f9; padding: 10px; height:20px; ">
+        角色名称： <input class="textbox" style="height:18px; width:10%;" id="RoleName" value="" />
+        <a href="javascript:rolemgt.list()" id="Search" class="easyui-linkbutton" plain="true" iconcls="icon-search">查询</a>
+        <a href="javascript:rolemgt.add()" id="add" class="easyui-linkbutton" plain="true" iconcls="icon-add">新增</a>
+    </div>
+    <div id="list">
+
+    </div>
+    <div id="w">
+    </div>
+</div>
+<script>
+
+
+    var rolemgt = {
+        getparam: function () {
+            var data = {
+                RoleName: $.trim($("#RoleName").val())
+            }
+            return data;
+        },
+        list: function () {
+            $('#list').datagrid({
+                fit: false,
+                url: '/User/RoleList',
+                method: 'POST',
+                loadMsg: "加载中,请耐心等待",
+                queryParams: this.getparam(),
+                striped: true,
+                fitColumns: true,
+                singleSelect: true,
+                rownumbers: true,
+                pagination: true,
+                nowrap: false,
+                pageSize: 15,
+                pageList: [10, 15, 30, 50],
+                showFooter: true,
+                columns: [[
+                    { field: 'RoleID', title: '角色ID', width: 50, align: 'center' },
+                    { field: 'RoleName', title: '角色名', width: 50, align: 'center' },
+                    { field: 'bak', title: '角色描述', width: 50, align: 'center' },
+                    { field: 'CreateTimetxt', title: '创建日期', width: 80, align: 'center' },
+                    {
+                        field: 'cz', title: '操作', width: 100, align: 'center',
+                        formatter: function (val, rec) {
+                            var html = "<a class='easyui-linkbutton' plain='true' iconcls='icon-edit'  href='javascript:rolemgt.bindfunction(" + rec.RoleID + ");'>设置权限</a>&nbsp;&nbsp;&nbsp;";
+                            html += "<a class='easyui-linkbutton' plain='true' iconcls='icon-edit'  href='javascript:rolemgt.edit(" + rec.RoleID + ");'>编辑</a>&nbsp;&nbsp;&nbsp;";
+                            html += "<a class='easyui-linkbutton' plain='true' iconcls='icon-delete' href='javascript:rolemgt.del(" + rec.RoleID + ");'>删除</a>";
+                            return html;
+                        }
+                    }
+                ]],
+            });
+            $("#list").datagrid("getPager").pagination({
+                beforePageText: '第',
+                afterPageText: '页    共 {pages} 页',
+                pageList: [10, 15, 30, 50],
+                displayMsg: "显示 {from} 到 {to} 条记录 ,  共 {total} 条记录"
+            });
+        },
+        add: function () {
+            $('#w').window({
+                width: 450,
+                height: 320,
+                modal: true,
+                href: "/User/RoleOpIndex?eo=1",
+                title: "添加用户"
+            });
+        },
+        edit: function (id) {
+            $('#w').window({
+                width: 450,
+                height: 320,
+                modal: true,
+                href: "/User/RoleOpIndex?eo=2&&RoleID=" + id,
+                title: "编辑用户"
+            });
+        },
+        bindfunction: function (id) {
+            $('#w').window({
+                width: 600,
+                height: 500,
+                modal: true,
+                href: "/User/RoleBindFunction?RoleID=" + id,
+                title: "设置权限" 
+            });
+        },
+        del: function (fid) {
+            $.messager.confirm('系统提示', '您确定要删除吗?', function (r) {
+                if (r) {
+                    $.ajax({
+                        async: false,
+                        type: "post",
+                        url: "/User/RoleOp",
+                        data: { RoleID: fid, eo: 3 },
+                        success: function (result) {
+                            if (result.Code == -1) {
+                                $.messager.alert('提示', result.Msg);
+                            }
+                            else {
+                                rolemgt.list();
+                            }
+                        }
+                    });
+                }
+            });
+        }
+
+    }
+
+    $(document).ready(function () {
+        rolemgt.list();
+    });
+</script>
+
+

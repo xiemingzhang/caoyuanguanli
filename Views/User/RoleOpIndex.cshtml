@@ -1,0 +1,121 @@
+﻿
+
+@{
+
+    Layout = null;
+}
+@using GrassPlantInfo.Contract.DTO.Admin;
+@using GrassPlantInfo.Contract.Enum;
+@model RolesDto
+@{
+    var t = (EnumOperation)ViewBag.Type;
+    bool IsEdit = (t == EnumOperation.EDIT) ? true : false;
+}
+<script src="~/js/Easyui.verity.extend.js"></script>
+@Html.Hidden("Type", (int)t)
+@Html.HiddenFor(x => x.RoleID)
+<form id="frmroleop" style=" padding-top:30px;">
+
+    <table width="100%" align="center" id="tb_content">
+        <tr>
+            <td style="width:100px" align="right"> 用户名称：</td>
+            <td style="width:200px">
+
+                @{if (!IsEdit)
+                {
+                    @Html.TextBoxFor(x => x.RoleName, new
+                    {
+                        @class = "easyui-validatebox textbox",
+                        @required = "true",
+                        @missingMessage = "请输入角色名称",
+                        @style = "width:70%;height:22px",
+                        @maxlenth = 30
+                    });
+                }
+                else
+                {
+                    <span>@Model.RoleName</span>
+                }
+                }
+            </td>
+        </tr>
+        <tr>
+            <td style="width:100px" align="right"> 角色描述：</td>
+            <td style="width:200px">
+               @Html.TextAreaFor(x => x.bak, new { @class = "textarea easyui-validatebox", @style = "width:90%;height:90px", @cols = "80", @rows = "14", @maxlenth = 200 })
+            </td>
+        </tr>
+
+
+
+        <tr>
+            <td style="width:100px" colspan="2" align="center"> <a href="javascript:userOp.submit()" class="easyui-linkbutton" iconcls="icon-save" plain="true">保存</a></td>
+
+        </tr>
+    </table>
+
+
+
+</form>
+
+
+<script>
+
+    var userOp = {
+        pageType: $("#Type").val(),
+        getparam: function (t) {
+            var data={}
+            data = {
+                RoleID: $("#RoleID").val(),
+                RoleName: $("#frmroleop #RoleName").val(),
+                eo: $("#Type").val(),
+                bak: $("#bak").val()
+            }
+            return data;
+        },
+        check: function () {
+            var bo = true;
+            bo = $("#frmroleop").form('validate');
+           if (bo) {
+               $.ajax({
+                   async: false,
+                   type: "post",
+                   url: "/User/ValidateRoleName",
+                   data: { RoleName: $.trim($("#frmroleop #RoleName").val()) },
+                   success: function (result) {
+                       if (result.Code == -1) {
+                           $.messager.alert('提示', result.Msg);
+                           bo = false;
+                           return false;
+                       }
+                   }
+               });
+           }
+           else {
+               $.messager.alert('提示', "页面信息验证失败！");
+               return false;
+           }
+            return bo;
+        },
+        submit: function (t) {
+            if (this.check())
+            {
+                $.ajax({
+                    async: false,
+                    type: "post",
+                    url: "/User/RoleOp",
+                    data:  this.getparam(),
+                    success: function (result) {
+                        if (result.Code == -1) {
+                            $.messager.alert('提示', result.Msg);
+                            return false;
+                        }
+                        else {
+                            location.reload();
+                        }
+                    }
+                });
+            }
+        }
+    }
+</script>

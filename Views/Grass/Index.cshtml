@@ -1,0 +1,175 @@
+﻿@{
+    Layout = "~/Views/Shared/_ContentLayout.cshtml";
+
+    string isDisplaySet = ""
+       , isDisplayEdit = ""
+       , isDisplayAdd = ""
+       , isDisplayDel = ""
+       , isDisplayImport = ""
+       , isDisplayExport = "";
+    if (ViewData["btnDisplay"] != null)
+    {
+        isDisplayAdd = ((ControlButtonDto)ViewData["btnDisplay"]).AddDisplay ? "visible" : "hidden";
+        isDisplayEdit = ((ControlButtonDto)ViewData["btnDisplay"]).EditDisplay ? "visible" : "hidden";
+        isDisplayDel = ((ControlButtonDto)ViewData["btnDisplay"]).DelDisplay ? "visible" : "hidden";
+        isDisplayImport = ((ControlButtonDto)ViewData["btnDisplay"]).ImportDisplay ? "visible" : "hidden";
+        isDisplaySet = ((ControlButtonDto)ViewData["btnDisplay"]).SetDisplay ? "visible" : "hidden";
+        isDisplayExport = ((ControlButtonDto)ViewData["btnDisplay"]).ExportDisplay ? "visible" : "hidden";
+    }
+
+}
+@using GrassPlantInfo.Contract.DTO.Admin;
+
+<style>
+    .datagrid-row {
+        height: 32px;
+    }
+</style>
+<div>
+    <div style="margin-top:-10px; margin-left:-8px;">
+        <div id="titlebar" style="background: #f9f9f9; padding: 10px; ">
+            <b>当前位置：</b> 草原管理系统 > 上报管理 > 草原数据统计
+        </div>
+    </div>
+    <div style="margin-top:-10px; margin-left:-8px;">
+        <div id="toolbar" style="background: #f9f9f9; padding: 10px; height:20px; ">
+            植被科名： <input class="textbox" style="height:18px; width:10%;" id="Name" value="" />
+            <a href="javascript:plantFamily.list()" id="Search" class="easyui-linkbutton" plain="true" iconcls="icon-search">查询</a>
+            <a href="javascript:plantFamily.add()" id="add" style="visibility:@isDisplayAdd" class="easyui-linkbutton" plain="true" iconcls="icon-add">新增</a>
+        </div>
+        <div id="familylist"></div>
+        <div id="w"></div>
+    </div>
+</div>
+<script>
+    var plantFamily = {
+        getparam: function () {
+            var data = {
+                Name: $.trim($("#Name").val())
+            }
+            return data;
+        },
+        list: function () {
+            $('#familylist').datagrid({
+                fit: false,
+                url: '/Grass/GetData',
+                method: 'POST',
+                loadMsg: "加载中,请耐心等待",
+                queryParams: this.getparam(),
+                striped: true,
+                fitColumns: true,
+                singleSelect: true,
+                rownumbers: true,
+                pagination: true,
+                nowrap: true,
+                pageSize: 15,
+                pageList: [10, 15, 30, 50],
+                showFooter: true,
+                columns: [[
+                    { field: 'StatisticsId',hidden:true},
+                    { field: 'TotalArea', title: '草原总面积', width: 80, align: 'center', resizable: false, fixed: true },
+                    //{ field: 'StateOwnedArea', title: '国有草原面积', width: 90, align: 'center', resizable: false, fixed: true },
+                    //{ field: 'CollectiveArea', title: '集体草原面积', width: 90, align: 'center', resizable: false, fixed: true },
+                    { field: 'VegetationCoverage', title: '草原综合植被盖度', width: 120, align: 'center', resizable: false, fixed: true },
+                    { field: 'ContractArea', title: '草原承包面积', width: 80, align: 'center', resizable: false, fixed: true },
+                    //{ field: 'ContractStateArea', title: '落实承包<br/>的国有草原面积', width: 100, align: 'center', resizable: false, fixed: true },
+                    //{ field: 'ContractCollectiveArea', title: '落实承包<br/>的集体草原面积', width: 100, align: 'center', resizable: false, fixed: true },
+                    //{ field: 'ImmovableArea', title: '已纳入不动产<br/>统一确权登记的草原承包面积', width: 180, align: 'center', resizable: false, fixed: true },
+                    //{ field: 'NaturalArea', title: '已纳入自然资源<br/>统一确权登记的草原承包面积', width: 190, align: 'center', resizable: false, fixed: true },
+                    { field: 'StateRanchArea', title: '国有农牧场<br/>的草原面积', width: 90, align: 'center' },
+                    { field: 'ReformedArea', title: '已改制国有<br/>农牧场的草原面积', width: 120, align: 'center' },
+                    { field: 'ToCollectiveArea', title: '国有草原向集体<br/>经济组织外流转的面积', width: 160, align: 'center' },
+                    { field: 'NoticedArea', title: '已公告<br/>基本草原面积', width: 90, align: 'center' },
+                    { field: 'CompleteNotNoticeArea', title: '完成技术划定<br/>但未公告的基本草原面积', width: 160, align: 'center' },
+                    { field: 'EcologicalRedLineArea', title: '纳入生态<br/>保护红线草原面积', width: 120, align: 'center' },
+                    { field: 'VariousProtectedArea', title: '纳入各类<br/>保护地草原面积', width: 100, align: 'center' },
+                    //{ field: 'ProhibitedZoneArea', title: '禁止开发区内<br/>的草原面积', width: 100, align: 'center' },
+                    //{ field: 'RestrictedDevelopArea', title: '限制开发区<br/>内的草原面积', width: 100, align: 'center' },
+                    //{ field: 'KeyDevelopArea', title: '重点开发区<br/>内的草原面积', width: 100, align: 'center' },
+                    //{ field: 'optimizeDevelopArea', title: '优化开发区<br/>内的草原面积', width: 100, align: 'center' },
+                    //{ field: 'LivestockHerdsNumber', title: '年末草食家<br/>畜存栏数量', width: 100, align: 'center' },
+                    {
+                        field: 'cz', title: '操作', width: 150, align: 'center',
+                        formatter: function (val, rec) {
+                            var html = "<a class='easyui-linkbutton btnShow' plain='true' href='javascript:plantFamily.detail(" + rec.StatisticsId + ");' title='查看详情' ></a>&nbsp;&nbsp;&nbsp;";
+                            html += "<a class='easyui-linkbutton btnEdit' plain='true' style='visibility:@isDisplayEdit'   href='javascript:plantFamily.edit(" + rec.StatisticsId + ");' title='编辑'></a>&nbsp;&nbsp;&nbsp;";
+                            html += "<a class='easyui-linkbutton btnDelete' plain='true' style='visibility:@isDisplayDel'  href='javascript:plantFamily.del(" + rec.StatisticsId + ");' title='删除'></a>";
+                            return html;
+                        }
+                    }
+                ]],
+                onLoadSuccess: function () {
+                    $(".btnShow").linkbutton({
+                        iconCls: "icon-show"
+                    });
+                    $(".btnEdit").linkbutton({
+                        iconCls: "icon-edit"
+                    });
+                    $(".btnDelete").linkbutton({
+                        iconCls: "icon-delete"
+                    });
+                }
+            });
+            $("#familylist").datagrid("getPager").pagination({
+                beforePageText: '第',
+                afterPageText: '页    共 {pages} 页',
+                pageList: [10, 15, 30, 50],
+                displayMsg: "显示 {from} 到 {to} 条记录 ,  共 {total} 条记录"
+            });
+        },
+        add: function () {
+            $('#w').window({
+                width: 835,
+                height: 570,
+                modal: true,
+                //href: "/Grass/Create",
+                href: "/Grass/Add",
+                title: "新增草原统计信息"
+            });
+        },
+        detail: function (fid) {
+            $('#w').window({
+                width: 730,
+                height: 600,
+                modal: true,
+                href: "/Grass/Details?Id=" + fid,
+                title: "草原详细信息"
+            });
+        },
+        edit: function (fid) {
+            $('#w').window({
+                width: 780,
+                //height: 630,
+                height: 570,
+                modal: true,
+                //href: "/Grass/Edit?Id=" + fid,
+                href: "/Grass/Add?Id=" + fid,
+                title: "编辑草原统计信息"
+            });
+        },
+        del: function (fid) {
+            $.messager.confirm('系统提示', '您确定要删除吗?', function (r) {
+                if (r) {
+                    $.ajax({
+                        async: false,
+                        type: "post",
+                        url: "/Grass/Delete",
+                        data: { Id: fid},
+                        success: function (result) {
+                            if (result.Code > 0) {
+                                $.messager.alert('提示', result.Msg, 'error');
+                            }
+                            else {
+                                plantFamily.list();
+                            }
+                        }
+                    });
+                }
+            });
+        }
+    }
+
+    $(document).ready(function () {
+        plantFamily.list();
+    });
+</script>

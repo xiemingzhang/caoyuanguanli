@@ -1,0 +1,193 @@
+﻿@{
+    Layout = "~/Views/Shared/_ContentLayout.cshtml";
+    string isDisplaySet = "", isDisplayEdit = "", isDisplayAdd = "", isDisplayDel = "", isDisplayImport = "", isDisplayExport = "";
+    if (ViewData["btnDisplay"] != null)
+    {
+        isDisplayAdd = ((ControlButtonDto)ViewData["btnDisplay"]).AddDisplay ? "visible" : "hidden";
+        isDisplayEdit = ((ControlButtonDto)ViewData["btnDisplay"]).EditDisplay ? "visible" : "hidden";
+        isDisplayDel = ((ControlButtonDto)ViewData["btnDisplay"]).DelDisplay ? "visible" : "hidden";
+        isDisplayImport = ((ControlButtonDto)ViewData["btnDisplay"]).ImportDisplay ? "visible" : "hidden";
+        isDisplaySet = ((ControlButtonDto)ViewData["btnDisplay"]).SetDisplay ? "visible" : "hidden";
+        isDisplayExport = ((ControlButtonDto)ViewData["btnDisplay"]).ExportDisplay ? "visible" : "hidden";
+    }
+}
+@using GrassPlantInfo.Contract.DTO.Admin;
+<div style="margin-top:-10px; margin-left:-8px;">
+    <div id="titlebar" style="background: #f9f9f9; padding: 10px; ">
+        <b>当前位置：</b> 草原管理系统 > 检测数据管理 > 草本数据
+    </div>
+</div>
+<div style="margin-top:-10px; margin-left:-8px;">
+    <div id="toolbar" style="background: #f9f9f9; padding: 10px; height:20px; ">
+        样地名称： <input class="textbox" style="height:18px; width:10%;" id="SamplePlotName" value="" />
+        年份： <input class="textbox" style="height:18px; width:10%;" id="Year" value="" />
+        <a href="javascript:grass.list()" id="Search" class="easyui-linkbutton" plain="true" iconcls="icon-search">查询</a>
+        <a href="javascript:grass.add()" id="add" style="visibility:@isDisplayAdd" class="easyui-linkbutton" plain="true" iconcls="icon-add">新增</a>
+        <a href="#" id="uploader" style="visibility:@isDisplayImport" class="easyui-linkbutton" plain="true" iconcls="icon-add">批量导入</a>
+    </div>
+    <div id="list">
+
+    </div>
+    <div id="w">
+    </div>
+</div>
+<script src="~/js/jquery-plugin/fineuploader-3.7.1/jquery.fineuploader-3.7.1.min.js"></script>
+<script>
+
+    var initUploader = function () {
+
+        $('#uploader').find(".l-btn-text").fineUploader({
+            request: { endpoint: '/BaseDataManage/PostFile?name=T_GrassSample' },
+            text: { uploadButton: '批量导入' },
+            autoUpload: true
+        }).on('upload', function (id, name) {
+            $.messager.progress({ title: '请稍等', msg: '正在上传...', interval: 0 });
+        }).on('complete', function (event, id, name, response) {
+            $.messager.progress('close');
+            if (response.success) {
+                $.messager.alert('提示', response.message);
+                location.reload();
+            } else {
+                $.messager.alert('提示', response.message);
+            }
+        }).on('progress', function (target, id, name, loaded, total) {
+            $.messager.progress('bar').progressbar('setValue', Math.ceil(loaded * 100 / total));
+            if (loaded >= total) {
+                $.messager.progress('close');
+                $.messager.progress({ title: '请稍等', msg: '上传完成，正在导入处理...', interval: 300, text: '' });
+            }
+        }).on('error', function (target, id, name, reason, maybeXhrOrXdr) {
+        });
+        $("#uploader").css("overflow", "hidden");
+        $(".qq-upload-button").css("overflow", "");
+        $(".qq-drop-processing,.qq-upload-list").hide();
+    };
+    setTimeout(initUploader, 500);
+
+    /*****************************************************************************************************************************/
+    var grass = {
+        getparam: function () {
+            var data = {
+                Year: $.trim($("#Year").val()),
+                SamplePlotName: $.trim($("#SamplePlotName").val())
+            }
+            return data;
+        },
+        list: function () {
+            $('#list').datagrid({
+                fit: false,
+                url: '/BaseDataManage/GrassSampleList',
+                method: 'POST',
+                loadMsg: "加载中,请耐心等待",
+                queryParams: this.getparam(),
+                striped: true,
+                fitColumns: true,
+                singleSelect: true,
+                rownumbers: true,
+                pagination: true,
+                nowrap: false,
+                pageSize: 15,
+                pageList: [10, 15, 30, 50],
+                showFooter: true,
+                columns: [[
+                    { field: 'Id', hidden:true },
+                    { field: 'SamplePlotID', title: '样地号', width: 50, align: 'center' },
+                    { field: 'SamplePlotName', title: '样地', width: 50, align: 'center' },
+                    { field: 'Year', title: '年份', width: 50, align: 'center' },
+                    { field: 'Longitude', title: '东经', width: 50, align: 'center' },
+                    { field: 'Latitude', title: '北纬', width: 40, align: 'center' },
+                    { field: 'Altitude', title: '海拔(米)', width: 30, align: 'center' },
+                    { field: 'EdibleGrassDryWeight', title: '可食产草量风干重（千克每公顷）', width: 50, align: 'center' },
+                    { field: 'EdibleGrassFreshWeight', title: '可食产草量鲜重（千克每公顷）', width: 50, align: 'center' },
+                    { field: 'TotalGrassDryWeight', title: '总产草量风干重(千克每公顷)', width: 80, align: 'center' },
+                    { field: 'TotalGrassFreshWeight', title: '总产草量鲜重(千克每公顷)', width: 80, align: 'center' },
+                    { field: 'NonEdibleGrassAmout', title: '不可食草种数', width: 80, align: 'center' },
+                    { field: 'PlantAmout', title: '植物种数', width: 80, align: 'center' },
+                    { field: 'AverageHeight', title: '草群平均高度(厘米)', width: 70, align: 'center' },
+                    { field: 'CoverageFraction', title: '植物盖度（％）', width: 80, align: 'center' },
+                    { field: 'SamplePlotArea', title: '样方平均面积（平方米）', width: 50, align: 'center' },
+                    {
+                        field: 'cz', title: '操作', width: 100, align: 'center',
+                        formatter: function (val, rec) {
+                            var html = "<a class='easyui-linkbutton btnShow' plain='true' href='javascript:grass.detail(" + rec.Id + ");' title='查看详情' ></a>&nbsp;&nbsp;&nbsp;";
+                            html += "<a class='easyui-linkbutton btnEdit' plain='true' style='visibility:@isDisplayEdit'   href='javascript:grass.edit(" + rec.Id + ");' title='编辑'></a>&nbsp;&nbsp;&nbsp;";
+                            html += "<a class='easyui-linkbutton btnDelete' plain='true' style='visibility:@isDisplayDel'  href='javascript:grass.del(" + rec.Id + ");' title='删除'></a>";
+                            return html;
+                        }
+                    }
+                ]], onLoadSuccess: function () {
+                    $(".btnShow").linkbutton({
+                        iconCls: "icon-show"
+                    });
+                    $(".btnEdit").linkbutton({
+                        iconCls: "icon-edit"
+                    });
+                    $(".btnDelete").linkbutton({
+                        iconCls: "icon-delete"
+                    });
+                }
+            });
+            $("#list").datagrid("getPager").pagination({
+                beforePageText: '第',
+                afterPageText: '页    共 {pages} 页',
+                pageList: [10, 15, 30, 50],
+                displayMsg: "显示 {from} 到 {to} 条记录 ,  共 {total} 条记录"
+            });
+        },
+        add: function () {
+            $('#w').window({
+                width: 450,
+                height: 460,
+                modal: false,
+                href: "/BaseDataManage/GrassSampleManageIndex?eo=1",
+                title: "添加草本数据"
+            });
+        },
+        detail: function (fid) {
+            $('#w').window({
+                width: 450,
+                height: 460,
+                modal: true,
+                href: "/BaseDataManage/GrassSampleManageIndex?eo=4&&ID=" + fid,
+                title: "查看草本信息"
+            });
+        },
+        edit: function (fid) {
+            $('#w').window({
+                width: 450,
+                height: 460,
+                modal: true,
+                href: "/BaseDataManage/GrassSampleManageIndex?eo=2&&ID=" + fid,
+                title: "编辑草本信息"
+            });
+        },
+        del: function (fid) {
+            $.messager.confirm('系统提示', '您确定要删除吗?', function (r) {
+                if (r) {
+                    $.ajax({
+                        async: false,
+                        type: "post",
+                        url: "/BaseDataManage/GrassManageOP",
+                        data: { ID: fid, eo: 3 },
+                        success: function (result) {
+                            if (result.Code == -1) {
+                                $.messager.alert('提示', result.Msg);
+                            }
+                            else {
+                                $.messager.alert('提示', "删除成功。");
+                                grass.list();
+                            }
+                        }
+                    });
+                }
+            });
+        }
+    }
+
+    $(document).ready(function () {
+        grass.list();
+    });
+
+
+
+</script>

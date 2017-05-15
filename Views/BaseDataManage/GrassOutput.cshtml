@@ -1,0 +1,54 @@
+﻿@{
+    Layout = "~/Views/Shared/_MapLayout.cshtml";
+}
+@using GrassPlantInfo.GIS;
+@using GrassPlantInfo.GIS.Common;
+@using GrassPlantInfo.Service.GIS;
+@model GrassPlantInfo.Service.GIS.ModuleBase
+
+<!--global class-->
+<script type="text/javascript">
+    var App = {
+        MapBase: null
+    };
+</script>
+
+<!--Load BaseMap and rangeland-type layer-->
+<script type="text/javascript">
+    require({ async: true }, ["../map/js/MapBase.js", "dojo/query", "esri/layers/ArcGISTiledMapServiceLayer"],
+        function (mapbase, query, ArcGISTiledMapServiceLayer) {
+
+            App.MapBase = mapbase.CreateNew();
+            App.MapBase.LoadBaseMap("@Model.BaseMap.BaseMap.ServiceAuth");
+
+            query(".rangeLandType").forEach(function (node) {
+                node.onclick = function () {
+                    if (node.checked) {
+                        var pLayer = new ArcGISTiledMapServiceLayer(node.value, { id: node.id });
+                        App.MapBase.Map.addLayer(pLayer);
+                    }
+                    else {
+                        try {
+                             var pLayer = App.MapBase.Map.getLayer(node.id);
+                             App.MapBase.Map.removeLayer(pLayer);
+                        } catch (e) {
+
+                        }
+                    }
+                };
+            });
+        });
+</script>
+
+<!--functioning panel-->
+<div id="funcPanel" class="funcPanel" style="width:200px;padding-top:20px">
+    <div>
+        <ul>
+            @foreach (var TypeLayer in @Model.LayerList)
+            {
+                <li><input class="rangeLandType" name="ratsVermin" id="@TypeLayer.LayerName" type="checkbox" value="@TypeLayer.ServiceAuth" /><a onclick="App.MapBase.Dom.byId('@TypeLayer.LayerName').click()">@TypeLayer.LayerCnName</a></li>
+            }
+        </ul>
+    </div>
+</div>
+
