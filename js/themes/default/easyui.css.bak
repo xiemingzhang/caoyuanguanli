@@ -1112,8 +1112,7 @@ a.s-btn-plain-active .s-btn-downarrow{
 	display:inline-block;
 	text-decoration:none;
 	color:#4d4c4c;
-	/*background:url('images/tabs_enabled.png') repeat-x left top;*/
-	background:#e7e6e6;
+	background:url('images/tabs_enabled.png') repeat-x left top;
 	margin:0px;
 	padding:0px 10px;
 	height:25px;

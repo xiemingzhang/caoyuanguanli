@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta name="viewport" content="width=device-width" />
-    <title>宁夏草原管理平台</title>
+    <title>全国草地资源清查管理平台</title>
     <link href="/Css/default.css" rel="stylesheet" type="text/css" />
     <link rel="stylesheet" type="text/css" href="/js/themes/default/easyui.css" />
     <link rel="stylesheet" type="text/css" href="/js/themes/icon.css" />
@@ -88,6 +88,26 @@
         .mapshade{
             position:fixed; width:1235px;height:466px;top:150px;left:260px;z-index:99999;
         }
+        /* .amap-marker .marker-route {
+            position: absolute;
+            width: 40px;
+            height: 44px;
+            color: #e90000;
+            background: url(../../Images/poi-1.png) no-repeat;
+            cursor: pointer;
+        }
+        .amap-marker .marker-marker-bus-from {
+            background-position: -334px -180px;
+        } */
+        .panel:nth-of-type(1) .icon-sys{
+            background-position: 0px -200px;
+        }
+        .panel:nth-of-type(2) .icon-sys{
+            background-position: 0px -180px;
+        }
+        .panel:nth-of-type(3) .icon-sys{
+            background-position: 0px -160px;
+        }
     </style>
     <script type="text/javascript" src="/js/jquery-1.4.4.min.js"></script>
     <script type="text/javascript" src="/js/jquery.easyui.min.1.2.2.js"></script>
@@ -125,6 +145,7 @@
     map = new AMap.Map("container", {
         resizeEnable: true
     });
+    map.setMapStyle('light');
    //宁夏
       addBeiJing();
     //叠加云数据图层
@@ -169,7 +190,8 @@
         map.clearMap();
         var marker = new AMap.Marker({
             map: map,
-            position: [105.127926,37.166852]
+            position: [105.127926,37.166852],
+            /*content: '<div class="marker-route marker-marker-bus-from"></div>'*/
         });
         //鼠标点击marker弹出自定义的信息窗体
         AMap.event.addListener(marker, 'click', function() {

@@ -13,8 +13,7 @@
 
                 foreach (var parent in parentfuncList)
                 {
-
-                    <div title="@parent.FunctionName" icon="icon icon-sys" style="overflow:auto;">
+                    <div title="@parent.FunctionName" icon="icon icon-sys" style="overflow:auto;background:#2a3542;">
                         <ul>
                     @{
                     var childList = functionList.Where(x => x.ParentID == parent.FunctionID);
@@ -24,7 +23,6 @@
                         <li>
                             <div>
                                 <a ref="@child.FunctionID" href="#" rel="@url">
-                                    <span class="icon  icon-nav">&nbsp;</span>
                                     <span class="nav">@child.FunctionName</span>
                                 </a>
                             </div>
