@@ -6,12 +6,95 @@
     <link href="/Css/default.css" rel="stylesheet" type="text/css" />
     <link rel="stylesheet" type="text/css" href="/js/themes/default/easyui.css" />
     <link rel="stylesheet" type="text/css" href="/js/themes/icon.css" />
+    <style type="text/css">
+        .info {
+            border: solid 1px silver;
+        }
+        div.info-top {
+            position: relative;
+            background: none repeat scroll 0 0 #F9F9F9;
+            border-bottom: 1px solid #CCC;
+            border-radius: 5px 5px 0 0;
+        }
+        div.info-top div {
+            display: inline-block;
+            color: #333333;
+            font-size: 14px;
+            font-weight: bold;
+            line-height: 31px;
+            padding: 0 10px;
+        }
+        div.info-top img {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            transition-duration: 0.25s;
+        }
+        div.info-top img:hover {
+            box-shadow: 0px 0px 5px #000;
+        }
+        div.info-middle {
+            font-size: 12px;
+            padding: 6px;
+            line-height: 20px;
+            text-align: left;
+            background: white;
+            color:black;
+        }
+        div.info-bottom {
+            height: 0px;
+            width: 100%;
+            clear: both;
+            text-align: center;
+        }
+        div.info-bottom img {
+            position: relative;
+            z-index: 104;
+        }
+        span {
+            margin-left: 5px;
+            font-size: 11px;
+        }
+        .info-middle img {
+            float: left;
+            margin-right: 6px;
+        }
+        .myDiv{
+            width:135px;height:66px;float:left;margin-right:3px;
+        }
+        .isSmall{
+            width:135px;height:66px;
+        }
+        .isBig{
+            position:fixed; width:1235px;height:466px;top:150px;left:260px;z-index:9999;
+        }
+        .hide{
+            display: none;
+        }
+        .shade{
+            width:100%;
+            height:100%;
+            background-color:#000;
+            position:absolute;
+            top:0;
+            left:0;
+            bottom: 0;
+            right: 0;
+            z-index:9997;
+            opacity:0.3;
+            /*兼容IE8及以下版本浏览器*/
+            filter: alpha(opacity=30);
+        }
+        .mapshade{
+            position:fixed; width:1235px;height:466px;top:150px;left:260px;z-index:99999;
+        }
+    </style>
     <script type="text/javascript" src="/js/jquery-1.4.4.min.js"></script>
     <script type="text/javascript" src="/js/jquery.easyui.min.1.2.2.js"></script>
     <script type="text/javascript" src='/js/outlook2.js'> </script>
     <link rel="stylesheet" href="http://cache.amap.com/lbs/static/main1119.css"/>
     <script src="http://cache.amap.com/lbs/static/es5.min.js"></script>
-    <script src="http://webapi.amap.com/maps?v=1.3&key=13d3c320f0267af8e549edd2ee5d6e85&&plugin=AMap.Scale,AMap.OverView,AMap.Autocomplete,AMap.PlaceSearch"></script>
+    <script src="http://webapi.amap.com/maps?v=1.3&key=13d3c320f0267af8e549edd2ee5d6e85&&plugin=AMap.Scale,AMap.OverView"></script>
 </head>
 <body class="easyui-layout" style="overflow-y: hidden" >
 
@@ -20,6 +103,8 @@
             <img src="/images/noscript.gif" alt='抱歉，请开启脚本支持！' />
         </div>
     </noscript>
+    <div class='shade hide' onclick='shade()'></div>
+    <div class='mapshade hide' onclick='shade()'></div>
         @Html.Partial("_Top")
         @Html.Partial("_Left")
         @Html.Partial("_Footer")
@@ -38,10 +123,117 @@
         visible: false
     }),
     map = new AMap.Map("container", {
-        resizeEnable: true,
-        zoom:8,
-        center: [106.278179,38.46637]
+        resizeEnable: true
     });
+   //宁夏
+      addBeiJing();
+    //叠加云数据图层
+    function addBeiJing() {
+        //加载云图层插件
+        AMap.service('AMap.DistrictSearch', function() {
+            var opts = {
+                subdistrict: 1,   //返回下一级行政区
+                extensions: 'all',  //返回行政区边界坐标组等具体信息
+                level: 'province'  //查询行政级别为 省
+            };
+
+            //实例化DistrictSearch
+            district = new AMap.DistrictSearch(opts);
+            district.setLevel('district');
+            //行政区查询
+            district.search('宁夏', function(status, result) {
+                var bounds = result.districtList[0].boundaries;
+                var polygons = [];
+                if (bounds) {
+                    for (var i = 0, l = bounds.length; i < l; i++) {
+                        //生成行政区划polygon
+                        var polygon = new AMap.Polygon({
+                            map: map,
+                            strokeWeight: 1,
+                            path: bounds[i],
+                            fillOpacity: 0.1,
+                            fillColor: '#CCF3FF',
+                            strokeColor: '#CC66CC'
+                        });
+                        polygons.push(polygon);
+                    }
+                    map.setFitView();//地图自适应
+                }
+            });
+        });
+    }
+    //信息窗体
+     addMarker();
+    //添加marker标记
+    function addMarker() {
+        map.clearMap();
+        var marker = new AMap.Marker({
+            map: map,
+            position: [105.127926,37.166852]
+        });
+        //鼠标点击marker弹出自定义的信息窗体
+        AMap.event.addListener(marker, 'click', function() {
+            infoWindow.open(map, marker.getPosition());
+        });
+    }
+    //实例化信息窗体
+     var title = '这里是标题',
+        content = [];
+    content.push("<div class='myDiv'>\
+        <img src='../Images/j4.jpg' class='hide isBig' onclick='IsBig(0)'>\
+        <img src='../Images/j4.jpg' class='isSmall' onclick='IsBig(0)'></div>北京市朝阳区阜通东大街6号院3号楼东北8.3公里");
+    content.push("<a href='#'>详细信息</a>");
+    content.push("<div style='height:5px;background:white;'></div>");
+    var infoWindow = new AMap.InfoWindow({
+        isCustom: true,  //使用自定义窗体
+        content: createInfoWindow(title, content.join("<br/>")),
+        offset: new AMap.Pixel(16, -45)
+    });
+
+    //构建自定义信息窗体
+    function createInfoWindow(title, content) {
+        var info = document.createElement("div");
+        info.className = "info";
+
+        //可以通过下面的方式修改自定义窗体的宽高
+        //info.style.width = "400px";
+        // 定义顶部标题
+        var top = document.createElement("div");
+        var titleD = document.createElement("div");
+        var closeX = document.createElement("img");
+        top.className = "info-top";
+        titleD.innerHTML = title;
+        closeX.src = "http://webapi.amap.com/images/close2.gif";
+        closeX.onclick = closeInfoWindow;
+
+        top.appendChild(titleD);
+        top.appendChild(closeX);
+        info.appendChild(top);
+
+        // 定义中部内容
+        var middle = document.createElement("div");
+        middle.className = "info-middle";
+        middle.innerHTML = content;
+        info.appendChild(middle);
+
+        // 定义底部内容
+        var bottom = document.createElement("div");
+        bottom.className = "info-bottom";
+        bottom.style.position = 'relative';
+        bottom.style.top = '0px';
+        bottom.style.margin = '0 auto';
+        var sharp = document.createElement("img");
+        sharp.src = "http://webapi.amap.com/images/sharp.png";
+        bottom.appendChild(sharp);
+        info.appendChild(bottom);
+        return info;
+    }
+
+    //关闭信息窗体
+    function closeInfoWindow() {
+        map.clearInfoWindow();
+    }                       
+    //控件
     map.addControl(scale);
     map.addControl(overView);
     map.setFeatures(['bg','building','point']);//多个种类要素显示
@@ -73,19 +265,28 @@
         }
     }
     toggleOverViewOpen(overviewOpen);
-    //地图查询
-    /* var autoOptions = {
-        input: "tipinput"
-    };
-    var auto = new AMap.Autocomplete(autoOptions);
-    var placeSearch = new AMap.PlaceSearch({
-        map: map
-    });  //构造地点查询类
-    AMap.event.addListener(auto, "select", select);//注册监听，当选中某条记录时会触发
-    function select(e) {
-        placeSearch.setCity(e.poi.adcode);
-        placeSearch.search(e.poi.name);  //关键字查询查询
-    }*/
+    
+</script>
+<script>
+    //      图片放大缩小
+    function IsBig(t){
+        window.xxx = t;
+        console.log(window.xxx)
+        var oImg = $(".myDiv img");
+           $(oImg[window.xxx]).toggleClass('hide'); 
+         var oImg_2 =  $('.mapshade')[0] ;
+           $(oImg_2).toggleClass('hide');
+        var oDiv= $('.shade')[0] ;
+           $(oDiv).toggleClass('hide');
+        }
+    function shade(){
+        var oImg = $(".myDiv img");
+           $(oImg[window.xxx]).toggleClass('hide'); 
+            var oImg_2 =  $('.mapshade')[0] ;
+           $(oImg_2).toggleClass('hide');
+        var oDiv= $('.shade')[0] ;
+           $(oDiv).toggleClass('hide');
+    } 
 
 </script>
 </body>
