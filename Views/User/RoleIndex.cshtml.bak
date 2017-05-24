@@ -3,6 +3,11 @@
 }
 
 <div style="margin-top:-10px; margin-left:-8px;">
+    <div id="titlebar" style="background: #f9f9f9; padding: 10px; ">
+        <b>当前位置：</b> 用户管理 > 角色管理
+    </div>
+</div>
+<div style="margin-top:-10px; margin-left:-8px;">
     <div id="toolbar" style="background: #f9f9f9; padding: 10px; height:20px; ">
         角色名称： <input class="textbox" style="height:18px; width:10%;" id="RoleName" value="" />
         <a href="javascript:rolemgt.list()" id="Search" class="easyui-linkbutton" plain="true" iconcls="icon-search">查询</a>

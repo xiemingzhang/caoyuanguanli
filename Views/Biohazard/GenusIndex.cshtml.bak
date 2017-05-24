@@ -20,6 +20,11 @@
 </style>
 
 <div style="margin-top:-10px; margin-left:-8px;">
+    <div id="titlebar" style="background: #f9f9f9; padding: 10px; ">
+        <b>当前位置：</b> 草原管理系统 > 生物灾害管理 > 属名管理
+    </div>
+</div>
+<div style="margin-top:-10px; margin-left:-8px;">
     <div id="toolbar" style="background: #f9f9f9; padding: 10px; height:20px; ">
         属名： <input class="textbox" style="height:18px; width:10%;" id="Name" value="" />
         所属目:<select id="OrderList" class="easyui-combobox" style="width:130px"> </select>

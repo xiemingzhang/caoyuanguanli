@@ -86,7 +86,7 @@
             filter: alpha(opacity=30);
         }
         .mapshade{
-            position:fixed; width:1235px;height:466px;top:150px;left:260px;z-index:9998;
+            position:fixed; width:1235px;height:466px;top:150px;left:260px;z-index:99999;
         }
         /* .amap-marker .marker-route {
             position: absolute;
@@ -127,9 +127,9 @@
     <div class='mapshade hide' onclick='shade()'></div>
         @Html.Partial("_Top")
         @Html.Partial("_Left")
-        @Html.Partial("_Footer")
         <div id="mainPanle" region="center" style="background: #eee; overflow-y:hidden">
             @RenderBody()
+	    @Html.Partial("_Footer")
         </div>
     @Html.Partial("_Menu")
     <script> 
@@ -310,6 +310,16 @@
            $(oDiv).toggleClass('hide');
     } 
 
+</script>
+<script>
+    $(function(){ 
+　　var oPanel = $('.panel')
+    console.log(oPanel) 
+    for(var i=2;i<9;i++){
+        
+    }
+    }); 
+    
 </script>
 </body>
 </html>

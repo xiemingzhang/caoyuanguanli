@@ -21,6 +21,11 @@
 <script type="text/javascript" language="javascript" src="~/Scripts/jquery.uploadify-v2.1.4/swfobject.js" charset="gb2312"></script>
 
 <div style="margin-top:-10px; margin-left:-8px;">
+    <div id="titlebar" style="background: #f9f9f9; padding: 10px; ">
+        <b>当前位置：</b> 草原管理系统 > 草原生物灾害 > 生物灾害详情页面
+    </div>
+</div>
+<div style="margin-top:-10px; margin-left:-8px;">
     <div id="toolbar" style="background: #f9f9f9; padding: 10px; height:20px; ">
         @{
             if (!isDetail)

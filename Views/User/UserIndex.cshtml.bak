@@ -8,6 +8,11 @@
 }
 
 <div style="margin-top:-10px; margin-left:-8px;">
+    <div id="titlebar" style="background: #f9f9f9; padding: 10px; ">
+        <b>当前位置：</b> 系统管理 > 用户管理
+    </div>
+</div>
+<div style="margin-top:-10px; margin-left:-8px;">
     <div id="toolbar" style="background: #f9f9f9; padding: 10px; height:20px; ">
         用户名： <input class="textbox" style="height:18px; width:10%;" id="UserName" value="" />
         登录名： <input class="textbox" style="height:18px; width:10%;" id="LoginName" value="" />

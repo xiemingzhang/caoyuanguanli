@@ -857,7 +857,7 @@ a.m-btn-plain-active{
 	font-size:12px;
 }
 .panel-header{
-	padding:5px;
+	padding:10px;
 	line-height:15px;
 	color:#ffffff;
 	font-weight:bold;
@@ -883,20 +883,20 @@ a.m-btn-plain-active{
 	border-width:0px;
 }
 .panel-with-icon{
-	padding-left:18px;
+	padding-left:35px;
 }
 .panel-icon{
 	position:absolute;
-	left:5px;
-	top:4px;
+	left:20px;
+	top:10px;
 	width:16px;
 	height:16px;
 }
 
 .panel-tool{
 	position:absolute;
-	right:5px;
-	top:4px;
+	right:20px;
+	top:10px;
 }
 .panel-tool div{
 	display:block;

@@ -1,31 +1,42 @@
 ﻿@{
     Layout = "~/Views/Shared/_ContentLayout.cshtml";
+    string isDisplaySet = "", isDisplayEdit = "", isDisplayAdd = "", isDisplayDel = "", isDisplayImport = "", isDisplayExport = "";
+    if (ViewData["btnDisplay"] != null)
+    {
+        isDisplayAdd = ((ControlButtonDto)ViewData["btnDisplay"]).AddDisplay  ? "visible" : "hidden";
+        isDisplayEdit = ((ControlButtonDto)ViewData["btnDisplay"]).EditDisplay  ? "visible" : "hidden";
+        isDisplayDel = ((ControlButtonDto)ViewData["btnDisplay"]).DelDisplay  ? "visible" : "hidden";
+        isDisplayImport = ((ControlButtonDto)ViewData["btnDisplay"]).ImportDisplay  ? "visible" : "hidden";
+        isDisplaySet = ((ControlButtonDto)ViewData["btnDisplay"]).SetDisplay  ? "visible" : "hidden";
+        isDisplayExport = ((ControlButtonDto)ViewData["btnDisplay"]).ExportDisplay  ? "visible" : "hidden";
+    }
 }
-
+@using GrassPlantInfo.Contract.DTO.Admin;
 
 <style>
-     .datagrid-row {
+    .datagrid-row {
         height: 32px;
     }
-
 </style>
 
 <div style="margin-top:-10px; margin-left:-8px;">
+    <div id="titlebar" style="background: #f9f9f9; padding: 10px; ">
+        <b>当前位置：</b> 草原管理系统 > 生物灾害 > 生物目管理
+    </div>
+</div>
+<div style="margin-top:-10px; margin-left:-8px;">
     <div id="toolbar" style="background: #f9f9f9; padding: 10px; height:20px; ">
-        土纲名称： <input class="textbox" style="height:18px; width:10%;" id="Name" value="" />
-        <a href="javascript:plantFamily.list()" id="Search" class="easyui-linkbutton" plain="true" iconcls="icon-search">查询</a>
-        <a href="javascript:plantFamily.add()" id="add" class="easyui-linkbutton" plain="true" iconcls="icon-add">新增</a>
+        目名： <input class="textbox" style="height:18px; width:10%;" id="Name" value="" />
+        <a href="javascript:order.list()" id="Search" class="easyui-linkbutton" plain="true" iconcls="icon-search">查询</a>
     </div>
-    <div id="familylist">
- 
+    <div id="list">
+
     </div>
-    <div id="w" >
+    <div id="w">
     </div>
 </div>
 <script>
-
-
-    var plantFamily = {
+    var order = {
         getparam: function () {
             var data = {
                 Name: $.trim($("#Name").val())
@@ -33,9 +44,9 @@
             return data;
         },
         list: function () {
-            $('#familylist').datagrid({
+            $('#list').datagrid({
                 fit: false,
-                url: '/Soil/SoilOrderList',
+                url: '/Biohazard/OrderList',
                 method: 'POST',
                 loadMsg: "加载中,请耐心等待",
                 queryParams: this.getparam(),
@@ -49,20 +60,18 @@
                 pageList: [10, 15, 30, 50],
                 showFooter: true,
                 columns: [[
-                    { field: 'SoilOrderCode', title: '土纲代码', width: 50, align: 'center' },
-                    { field: 'SoilOrderName', title: '土纲', width: 50, align: 'center' },    
+                    { field: 'OrderId', title: '目ID', width: 50, align: 'center' },
+                    { field: 'OrderName', title: '目名', width: 50, align: 'center' },
                     {
                         field: 'cz', title: '操作', width: 100, align: 'center',
                         formatter: function (val, rec) {
-                            var html= "<a class='easyui-linkbutton btnEdit' plain='true'  href='javascript:plantFamily.edit(" + rec.SoilOrderID + ");' title='编辑'></a>&nbsp;&nbsp;&nbsp;";
-                            html += "<a class='easyui-linkbutton btnDelete' plain='true' href='javascript:plantFamily.del(" + rec.SoilOrderID + ");' title='删除'></a>";
+                            var html = "<a class='easyui-linkbutton btnShow' plain='true' href='javascript:order.detail(" + rec.OrderId + ");' title='查看详情' ></a>&nbsp;&nbsp;&nbsp;";
+                            html += "<a class='easyui-linkbutton btnEdit' plain='true' style='visibility:@isDisplayEdit'  href='javascript:order.edit(" + rec.OrderId + ");' title='编辑'></a>&nbsp;&nbsp;&nbsp;";
+                            html += "<a class='easyui-linkbutton btnDelete' plain='true' style='visibility:@isDisplayDel' href='javascript:order.del(" + rec.OrderId + ");' title='删除'></a>";
                             return html;
-                            // = "<a class='easyui-linkbutton btnShow' plain='true' href='javascript:plantFamily.detail(" + rec.SoilOrderID + ");' title='查看详情' ></a>&nbsp;&nbsp;&nbsp;";
-                            //html +
                         }
                     }
-                ]],
-                onLoadSuccess: function () {
+                ]], onLoadSuccess: function () {
                     $(".btnShow").linkbutton({
                         iconCls: "icon-show"
                     });
@@ -73,10 +82,8 @@
                         iconCls: "icon-delete"
                     });
                 }
-   
-            
             });
-            $("#familylist").datagrid("getPager").pagination({
+            $("#list").datagrid("getPager").pagination({
                 beforePageText: '第',
                 afterPageText: '页    共 {pages} 页',
                 pageList: [10, 15, 30, 50],
@@ -85,11 +92,11 @@
         },
         add: function () {
             $('#w').window({
-                width: 450,
-                height: 320,
+                width: 600,
+                height: 550,
                 modal: true,
-                href: "/Soil/SoilOrderDetailIndex?eo=1",
-                title: "添加土纲"
+                href: "/Biohazard/OrderDetailIndex?eo=1",
+                title: "添加目"
             });
         },
         detail: function (fid) {
@@ -97,8 +104,8 @@
                 width: 450,
                 height: 320,
                 modal: true,
-                href: "/Soil/SoilOrderDetailIndex?eo=4&&FamilyID=" + fid,
-                title: "编辑土纲"
+                href: "/Biohazard/OrderDetailIndex?eo=4&&OrderID=" + fid,
+                title: "查看目信息"
             });
         },
         edit: function (fid) {
@@ -106,8 +113,8 @@
                 width: 450,
                 height: 320,
                 modal: true,
-                href: "/Soil/SoilOrderDetailIndex?eo=2&&FamilyID=" + fid,
-                title: "编辑土纲"
+                href: "/Biohazard/OrderDetailIndex?eo=2&&OrderID=" + fid,
+                title: "编辑目信息"
             });
         },
         del: function (fid) {
@@ -116,14 +123,14 @@
                     $.ajax({
                         async: false,
                         type: "post",
-                        url: "/Soil/PlantFamilyOp",
-                        data: { SoilOrderID: fid, eo: 3 },
+                        url: "/Biohazard/OrderOp",
+                        data: { OrderID: fid, eo: 3 },
                         success: function (result) {
                             if (result.Code == -1) {
                                 $.messager.alert('提示', result.Msg);
                             }
                             else {
-                                plantFamily.list();
+                                order.list();
                             }
                         }
                     });
@@ -133,8 +140,6 @@
     }
 
     $(document).ready(function () {
-        plantFamily.list();
+        order.list();
     });
-
-
 </script>

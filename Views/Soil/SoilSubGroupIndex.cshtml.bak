@@ -7,7 +7,11 @@
         height: 32px;
     }
 </style>
-
+<div style="margin-top:-10px; margin-left:-8px;">
+    <div id="titlebar" style="background: #f9f9f9; padding: 10px; ">
+        <b>当前位置：</b> 草原管理系统 > 土地资源 > 土亚类名称管理
+    </div>
+</div>
 <div style="margin-top:-10px; margin-left:-8px;">
     <div id="toolbar" style="background: #f9f9f9; padding: 10px; height:20px; ">
         亚类名： <input class="textbox" style="height:18px; width:10%;" id="Name" value="" />

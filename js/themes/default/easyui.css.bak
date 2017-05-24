@@ -856,8 +856,12 @@ a.m-btn-plain-active{
 	overflow:hidden;
 	font-size:12px;
 }
+.panel:active{
+	background:#6ccac9;
+	opacity:0.1;
+}
 .panel-header{
-	padding:5px;
+	padding:10px;
 	line-height:15px;
 	color:#ffffff;
 	font-weight:bold;
@@ -883,20 +887,20 @@ a.m-btn-plain-active{
 	border-width:0px;
 }
 .panel-with-icon{
-	padding-left:18px;
+	padding-left:35px;
 }
 .panel-icon{
 	position:absolute;
-	left:5px;
-	top:4px;
+	left:20px;
+	top:10px;
 	width:16px;
 	height:16px;
 }
 
 .panel-tool{
 	position:absolute;
-	right:5px;
-	top:4px;
+	right:20px;
+	top:10px;
 }
 .panel-tool div{
 	display:block;
@@ -1112,7 +1116,8 @@ a.s-btn-plain-active .s-btn-downarrow{
 	display:inline-block;
 	text-decoration:none;
 	color:#4d4c4c;
-	background:url('images/tabs_enabled.png') repeat-x left top;
+	/*background:url('images/tabs_enabled.png') repeat-x left top;*/
+	background:#e7e6e6;
 	margin:0px;
 	padding:0px 10px;
 	height:25px;
